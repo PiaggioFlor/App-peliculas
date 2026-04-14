@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>App Películas</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <button onclick="mostrarSeccion('home')">Home</button>
+    <button onclick="mostrarSeccion('busqueda')">Buscar</button>
+    <button onclick="mostrarSeccion('favoritos')">Favoritos</button>
+    <button onclick="mostrarSeccion('historial')">Historial</button>
+    <button onclick="mostrarSeccion('contacto')">Contacto</button>
+  </nav>
+
+  <!-- HOME -->
+  <section id="home">
+    <h1>App de películas</h1>
+    <p>Buscá y guardá tus películas favoritas</p>
+  </section>
+
+  <!-- BÚSQUEDA -->
+  <section id="busqueda" style="display:none;">
+    <h2>Buscar películas</h2>
+
+    <input type="text" id="inputBusqueda" placeholder="Ej: Batman">
+    <button onclick="buscar()">Buscar</button>
+
+    <div id="resultados"></div>
+  </section>
+
+  <!-- DETALLE -->
+  <section id="detalle" style="display:none;">
+    <button onclick="mostrarSeccion('busqueda')">⬅ Volver</button>
+    <div id="detalleContenido"></div>
+  </section>
+
+  <!-- FAVORITOS -->
+  <section id="favoritos" style="display:none;">
+    <h2>Lista de deseos</h2>
+    <div id="listaFavoritos"></div>
+  </section>
+  <div id="formFavorito" style="display:none; position:fixed; top:20px; left:20px; background:white; padding:20px; border:1px solid black; z-index:1000;">
+    <h3>Agregar a favoritos</h3>
+
+    <label>Prioridad:</label>
+    <input type="number" id="prioridad" min="1" max="5">
+
+    <label>Categoría:</label>
+    <select id="categoria">
+        <option value="ver despues">Ver después</option>
+        <option value="favorita">Favorita</option>
+        <option value="recomendada">Recomendada</option>
+    </select>
+
+    <label>Nota:</label>
+    <textarea id="nota"></textarea>
+
+    <button onclick="guardarFavorito()">Guardar</button>
+    <button onclick="cerrarFormulario()">Cancelar</button>
+    </div>
+
+  <!-- HISTORIAL -->
+  <section id="historial" style="display:none;">
+    <h2>Historial</h2>
+    <div id="listaHistorial"></div>
+  </section>
+
+  <!-- CONTACTO -->
+  <section id="contacto" style="display:none;">
+    <h2>Contacto</h2>
+    <p>nombre</p>
+    <iframe 
+      src="colocar_url"
+      width="300" height="200">
+    </iframe>
+  </section>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
