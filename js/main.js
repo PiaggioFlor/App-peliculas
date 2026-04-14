@@ -1,41 +1,55 @@
+// =====================
+//  main.js
+//  Lógica de UI y navegación
+// =====================
+
 import { buscarPeliculas, obtenerDetalle, buscarTodasLasPeliculas } from "./api.js";
+import {
+  guardarHistorial,
+  obtenerHistorial,
+  obtenerFavoritos,
+  guardarFavoritoEnStorage,
+  eliminarFavoritoDeStorage,
+} from "./storage.js";
 
 let peliculaActual = null;
 
-// Navegación entre secciones
-window.mostrarSeccion = function(id) {
+// =====================
+//  NAVEGACIÓN
+// =====================
+
+window.mostrarSeccion = function (id) {
   document.querySelectorAll("section").forEach(sec => {
     sec.style.display = "none";
   });
 
   document.getElementById(id).style.display = "block";
-  if (id === "historial") {
-    mostrarHistorial(); 
-  }
 
-  if (id === "favoritos") {
-  mostrarFavoritos();
-}
+  if (id === "historial") mostrarHistorial();
+  if (id === "favoritos") mostrarFavoritos();
 };
 
-// Buscar películas
-window.buscar = async function() {
-  const texto = document.getElementById("inputBusqueda").value;
+// =====================
+//  BÚSQUEDA
+// =====================
 
+window.buscar = async function () {
+  const texto = document.getElementById("inputBusqueda").value;
   if (!texto) return;
 
   const peliculas = await buscarPeliculas(texto);
-
   mostrarResultados(peliculas);
 };
 
-//Mostrar "todas" las películas
-window.cargarTodasLasPeliculas = async function() {
+window.cargarTodasLasPeliculas = async function () {
   const peliculas = await buscarTodasLasPeliculas();
   mostrarResultadosEnHome(peliculas);
-}
+};
 
-// Mostrar resultados de ejemplo en home
+// =====================
+//  RENDER: RESULTADOS
+// =====================
+
 function mostrarResultadosEnHome(peliculas) {
   const contenedor = document.getElementById("home");
   contenedor.innerHTML = "";
@@ -46,17 +60,10 @@ function mostrarResultadosEnHome(peliculas) {
   }
 
   peliculas.forEach(peli => {
-    contenedor.innerHTML += `
-      <div class="card" onclick="verDetalle('${peli.imdbID}')">
-        <h3>${peli.Title}</h3>
-        <img src="${peli.Poster !== "N/A" ? peli.Poster : ""}" width="150">
-        <p>${peli.Year}</p>
-      </div>
-    `;
+    contenedor.innerHTML += crearCardHTML(peli);
   });
 }
 
-// Mostrar resultados
 function mostrarResultados(peliculas) {
   const contenedor = document.getElementById("resultados");
   contenedor.innerHTML = "";
@@ -67,28 +74,35 @@ function mostrarResultados(peliculas) {
   }
 
   peliculas.forEach(peli => {
-    contenedor.innerHTML += `
-      <div class="card" onclick="verDetalle('${peli.imdbID}')">
-        <h3>${peli.Title}</h3>
-        <img src="${peli.Poster !== "N/A" ? peli.Poster : ""}" width="150">
-        <p>${peli.Year}</p>
-      </div>
-    `;
+    contenedor.innerHTML += crearCardHTML(peli);
   });
 }
 
-// Ver detalle
-window.verDetalle = async function(id) {
+// Reutilizable para home y resultados
+function crearCardHTML(peli) {
+  return `
+    <div class="card" onclick="verDetalle('${peli.imdbID}')">
+      <h3>${peli.Title}</h3>
+      <img src="${peli.Poster !== "N/A" ? peli.Poster : ""}" width="150">
+      <p>${peli.Year}</p>
+    </div>
+  `;
+}
+
+// =====================
+//  DETALLE
+// =====================
+
+window.verDetalle = async function (id) {
   const peli = await obtenerDetalle(id);
 
   peliculaActual = peli;
-  guardarHistorial(peli);  //guarda en historial
+  guardarHistorial(peli);
 
   mostrarDetalle(peli);
   mostrarSeccion("detalle");
 };
 
-// Mostrar detalle
 function mostrarDetalle(peli) {
   const contenedor = document.getElementById("detalleContenido");
 
@@ -108,26 +122,13 @@ function mostrarDetalle(peli) {
   `;
 }
 
-//Guardar en historial
-function guardarHistorial(peli) {
-  let historial = JSON.parse(localStorage.getItem("historial")) || [];
+// =====================
+//  HISTORIAL
+// =====================
 
-  // evitar duplicados 
-  historial = historial.filter(item => item.imdbID !== peli.imdbID);
-
-  historial.unshift({
-    Title: peli.Title,
-    Poster: peli.Poster,
-    imdbID: peli.imdbID
-  });
-
-  localStorage.setItem("historial", JSON.stringify(historial));
-}
-
-//Mostrar historial
 function mostrarHistorial() {
   const contenedor = document.getElementById("listaHistorial");
-  let historial = JSON.parse(localStorage.getItem("historial")) || [];
+  const historial = obtenerHistorial();
 
   contenedor.innerHTML = "";
 
@@ -146,17 +147,19 @@ function mostrarHistorial() {
   });
 }
 
-//abrir y cerrrar formulario
-window.abrirFormulario = function() {
+// =====================
+//  FAVORITOS
+// =====================
+
+window.abrirFormulario = function () {
   document.getElementById("formFavorito").style.display = "block";
 };
 
-window.cerrarFormulario = function() {
+window.cerrarFormulario = function () {
   document.getElementById("formFavorito").style.display = "none";
 };
 
-//guardar en favs
-window.guardarFavorito = function() {
+window.guardarFavorito = function () {
   const prioridad = document.getElementById("prioridad").value;
   const categoria = document.getElementById("categoria").value;
   const nota = document.getElementById("nota").value;
@@ -166,27 +169,15 @@ window.guardarFavorito = function() {
     return;
   }
 
-  let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
-
-  favoritos.push({
-    Title: peliculaActual.Title,
-    Poster: peliculaActual.Poster,
-    imdbID: peliculaActual.imdbID,
-    prioridad: prioridad,
-    categoria: categoria,
-    nota: nota
-  });
-
-  localStorage.setItem("favoritos", JSON.stringify(favoritos));
+  guardarFavoritoEnStorage(peliculaActual, { prioridad, categoria, nota });
 
   cerrarFormulario();
   alert("Agregado a favoritos ❤️");
 };
 
-//mostrar favs
 function mostrarFavoritos() {
   const contenedor = document.getElementById("listaFavoritos");
-  let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
+  const favoritos = obtenerFavoritos();
 
   contenedor.innerHTML = "";
 
@@ -203,24 +194,21 @@ function mostrarFavoritos() {
         <p>Prioridad: ${peli.prioridad}</p>
         <p>Categoría: ${peli.categoria}</p>
         <p>${peli.nota || ""}</p>
-
-        <button onclick="eliminarFavorito('${peli.imdbID}')"> Eliminar</button>
+        <button onclick="eliminarFavorito('${peli.imdbID}')">Eliminar</button>
       </div>
     `;
   });
 }
 
-//funcion eliminar
-window.eliminarFavorito = function(id) {
-  let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
-
-  favoritos = favoritos.filter(peli => peli.imdbID !== id);
-
-  localStorage.setItem("favoritos", JSON.stringify(favoritos));
-
-  mostrarFavoritos(); // refresca la lista
+window.eliminarFavorito = function (id) {
+  eliminarFavoritoDeStorage(id);
+  mostrarFavoritos();
 };
 
-window.onload = function() {
+// =====================
+//  INIT
+// =====================
+
+window.onload = function () {
   cargarTodasLasPeliculas();
 };
