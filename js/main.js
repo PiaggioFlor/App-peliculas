@@ -1,4 +1,4 @@
-import { buscarPeliculas, obtenerDetalle } from "./api.js";
+import { buscarPeliculas, obtenerDetalle, buscarTodasLasPeliculas } from "./api.js";
 
 let peliculaActual = null;
 
@@ -28,6 +28,33 @@ window.buscar = async function() {
 
   mostrarResultados(peliculas);
 };
+
+//Mostrar "todas" las películas
+window.cargarTodasLasPeliculas = async function() {
+  const peliculas = await buscarTodasLasPeliculas();
+  mostrarResultadosEnHome(peliculas);
+}
+
+// Mostrar resultados de ejemplo en home
+function mostrarResultadosEnHome(peliculas) {
+  const contenedor = document.getElementById("home");
+  contenedor.innerHTML = "";
+
+  if (!peliculas || peliculas.length === 0) {
+    contenedor.innerHTML = "<p>No se encontraron resultados</p>";
+    return;
+  }
+
+  peliculas.forEach(peli => {
+    contenedor.innerHTML += `
+      <div class="card" onclick="verDetalle('${peli.imdbID}')">
+        <h3>${peli.Title}</h3>
+        <img src="${peli.Poster !== "N/A" ? peli.Poster : ""}" width="150">
+        <p>${peli.Year}</p>
+      </div>
+    `;
+  });
+}
 
 // Mostrar resultados
 function mostrarResultados(peliculas) {
@@ -192,4 +219,8 @@ window.eliminarFavorito = function(id) {
   localStorage.setItem("favoritos", JSON.stringify(favoritos));
 
   mostrarFavoritos(); // refresca la lista
+};
+
+window.onload = function() {
+  cargarTodasLasPeliculas();
 };

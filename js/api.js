@@ -29,3 +29,20 @@ export async function obtenerDetalle(id) {
     console.error("Error en detalle:", error);
   }
 }
+
+export async function buscarTodasLasPeliculas(){
+  const busqueda='avenger'; //letra para traer todas las películas
+  try{
+    const res = await fetch(`${URL}?apikey=${API_KEY}&s=${busqueda}`);
+     const data = await res.json();
+
+    if (data.Response === "False") {
+      throw new Error(data.Error);
+    }
+
+    return data.Search;
+  }catch (error) {
+    console.error("Error en búsqueda:", error);
+    return [];
+  }
+}
