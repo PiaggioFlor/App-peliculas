@@ -4,6 +4,7 @@
 // =====================
 
 import { buscarPeliculas, obtenerDetalle, buscarTodasLasPeliculas } from "./api.js";
+import { crearCardHTML } from "../Components/Card.js";
 import {
   guardarHistorial,
   obtenerHistorial,
@@ -23,7 +24,7 @@ window.mostrarSeccion = function (id) {
     sec.style.display = "none";
   });
 
-  document.getElementById(id).style.display = "block";
+  document.getElementById(id).style.display = "flex";
 
   if (id === "historial") mostrarHistorial();
   if (id === "favoritos") mostrarFavoritos();
@@ -59,13 +60,12 @@ function mostrarResultadosEnHome(peliculas) {
     return;
   }
 
-  peliculas.forEach(peli => {
-    contenedor.innerHTML += crearCardHTML(peli);
-  });
+  contenedor.innerHTML = peliculas.map(peli => crearCardHTML(peli)).join('');
 }
 
 function mostrarResultados(peliculas) {
   const contenedor = document.getElementById("resultados");
+  contenedor.style.display = "flexbox";
   contenedor.innerHTML = "";
 
   if (!peliculas || peliculas.length === 0) {
@@ -73,13 +73,11 @@ function mostrarResultados(peliculas) {
     return;
   }
 
-  peliculas.forEach(peli => {
-    contenedor.innerHTML += crearCardHTML(peli);
-  });
+  contenedor.innerHTML = peliculas.map(peli => crearCardHTML(peli)).join('');
 }
 
 // Reutilizable para home y resultados
-function crearCardHTML(peli) {
+/*function crearCardHTML(peli) {
   return `
     <div class="card" onclick="verDetalle('${peli.imdbID}')">
       <h3>${peli.Title}</h3>
@@ -87,7 +85,7 @@ function crearCardHTML(peli) {
       <p>${peli.Year}</p>
     </div>
   `;
-}
+}*/
 
 // =====================
 //  DETALLE
@@ -130,21 +128,9 @@ function mostrarHistorial() {
   const contenedor = document.getElementById("listaHistorial");
   const historial = obtenerHistorial();
 
-  contenedor.innerHTML = "";
-
-  if (historial.length === 0) {
-    contenedor.innerHTML = "<p>No hay historial aún</p>";
-    return;
-  }
-
-  historial.forEach(peli => {
-    contenedor.innerHTML += `
-      <div class="card" onclick="verDetalle('${peli.imdbID}')">
-        <h3>${peli.Title}</h3>
-        <img src="${peli.Poster}" width="120">
-      </div>
-    `;
-  });
+  contenedor.innerHTML = historial.length 
+    ? historial.map(peli => crearCardHTML(peli)).join('') 
+    : "<p>No hay historial aún</p>";
 }
 
 // =====================
@@ -181,23 +167,9 @@ function mostrarFavoritos() {
 
   contenedor.innerHTML = "";
 
-  if (favoritos.length === 0) {
-    contenedor.innerHTML = "<p>No hay favoritos</p>";
-    return;
-  }
-
-  favoritos.forEach(peli => {
-    contenedor.innerHTML += `
-      <div class="card">
-        <h3>${peli.Title}</h3>
-        <img src="${peli.Poster}" width="120">
-        <p>Prioridad: ${peli.prioridad}</p>
-        <p>Categoría: ${peli.categoria}</p>
-        <p>${peli.nota || ""}</p>
-        <button onclick="eliminarFavorito('${peli.imdbID}')">Eliminar</button>
-      </div>
-    `;
-  });
+  contenedor.innerHTML = favoritos.length 
+    ? favoritos.map(peli => crearCardHTML(peli, true)).join('') 
+    : "<p>No hay favoritos</p>";
 }
 
 window.eliminarFavorito = function (id) {
