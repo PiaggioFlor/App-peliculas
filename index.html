@@ -3,97 +3,278 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>App Películas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineApp</title>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/desktop.css">
+
+  <!-- FONT AWESOME -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
 
-  <!-- NAV -->
-  <nav>
-    <img src="Assets/Logo.jpg" alt="Logo">
-    <button onclick="mostrarSeccion('home')">Home</button>
-    <button onclick="mostrarSeccion('busqueda')">Buscar</button>
-    <button onclick="mostrarSeccion('favoritos')">Favoritos</button>
-    <button onclick="mostrarSeccion('historial')">Historial</button>
-    <button onclick="mostrarSeccion('contacto')">Contacto</button>
-  </nav>
+  <div class="app-wrapper">
 
-  <!-- HOME -->
-  <section id="home">
-    <h1>App de películas</h1>
-    <p>Buscá y guardá tus películas favoritas</p>
+    <!-- SIDEBAR (desktop) -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="Assets/Logo.jpg" alt="Logo">
+        <span>Cine<span>App</span></span>
+      </div>
 
-  </section>
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-item active" onclick="mostrarSeccion('home')">
+          <i class="fa-solid fa-house nav-icon"></i> Inicio
+        </div>
 
-  <!-- BÚSQUEDA -->
-  <section id="busqueda">
-    <div class="busquedaContainer">
-      <h2>Buscar películas</h2>
+        <div class="sidebar-nav-item" onclick="mostrarSeccion('busqueda')">
+          <i class="fa-solid fa-magnifying-glass nav-icon"></i> Buscar
+        </div>
 
-      <input type="text" id="inputBusqueda" placeholder="Ej: Batman">
-      <button onclick="buscar()">Buscar</button>
-    </div>
+        <div class="sidebar-nav-item" onclick="mostrarSeccion('favoritos')">
+          <i class="fa-solid fa-heart nav-icon"></i> Favoritos
+        </div>
 
+        <div class="sidebar-nav-item" onclick="mostrarSeccion('historial')">
+          <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Historial
+        </div>
 
-    <div id="resultados"></div>
-  </section>
+        <div class="sidebar-nav-item" onclick="mostrarSeccion('contacto')">
+          <i class="fa-solid fa-user nav-icon"></i> Contacto
+        </div>
+      </nav>
 
+      <div class="sidebar-footer">CineApp v1.0</div>
+    </aside>
 
+    <!-- HOME -->
+    <section id="home" class="active">
+      <div class="topbar">
+        <div class="logo">
+          <img src="Assets/Logo.jpg" alt="Logo">
+          <span>Cine<span>App</span></span>
+        </div>
 
-  <!-- DETALLE -->
-  <section id="detalle"">
-    <div id="detalleContenido"></div>
-  </section>
+        <button onclick="mostrarSeccion('busqueda')" class="icon-btn">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
 
-  <!-- FAVORITOS -->
-  <section id="favoritos" style="display:none;">
-    <h2>Lista de deseos</h2>
-    <div id="listaFavoritos"></div>
-  </section>
-  <div id="formFavorito"
-    style="display:none; position:fixed; top:20px; left:20px; background:white; padding:20px; border:1px solid black; z-index:1000;">
-    <h3>Agregar a favoritos</h3>
+      <div class="section-label">
+        <h2>Recomendados</h2>
+        <a onclick="mostrarSeccion('busqueda')">Ver todos</a>
+      </div>
+      <div class="h-scroll" id="scrollRecomendados"></div>
 
-    <label>Prioridad:</label>
-    <input type="number" id="prioridad" min="1" max="5">
+      <div class="section-label">
+        <h2>Favoritos</h2>
+        <a onclick="mostrarSeccion('favoritos')">Ver todos</a>
+      </div>
+      <div class="h-scroll" id="scrollFavoritos"></div>
 
-    <label>Categoría:</label>
-    <select id="categoria">
-      <option value="ver despues">Ver después</option>
-      <option value="favorita">Favorita</option>
-      <option value="recomendada">Recomendada</option>
-    </select>
+      <div class="section-label">
+        <h2>Historial</h2>
+        <a onclick="mostrarSeccion('historial')">Ver todos</a>
+      </div>
+      <div class="h-scroll" id="scrollHistorial"></div>
+    </section>
 
-    <label>Nota:</label>
-    <textarea id="nota"></textarea>
+    <!-- BUSQUEDA -->
+    <section id="busqueda">
+      <div class="topbar">
+        <div class="logo-text">BUS<span>CAR</span></div>
+      </div>
 
-    <button onclick="guardarFavorito()">Guardar</button>
-    <button onclick="cerrarFormulario()">Cancelar</button>
+      <div class="search-bar">
+        <input type="text" id="inputBusqueda" placeholder="Ej: Batman, Marvel..."
+          onkeydown="if(event.key==='Enter') buscar()">
+        <button onclick="buscar()">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+
+      <div class="resultados-label" id="labelResultados">
+        Visto recientemente
+      </div>
+
+      <div id="resultados" class="card-grid"></div>
+    </section>
+
+    <!-- DETALLE -->
+    <section id="detalle">
+      <div class="detalle-back">
+        <button onclick="volverAtras()">←</button>
+        <span>Detalle</span>
+      </div>
+
+      <div id="detalleContenido"></div>
+    </section>
+
+    <!-- FAVORITOS -->
+    <section id="favoritos">
+      <div class="topbar">
+        <div class="logo-text">FAVO<span>RITOS</span></div>
+      </div>
+
+      <div id="listaFavoritos" class="card-grid"></div>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section id="historial">
+      <div class="topbar">
+        <div class="logo-text">HISTO<span>RIAL</span></div>
+      </div>
+
+      <div id="listaHistorial" class="card-grid"></div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section id="contacto">
+      <div class="topbar">
+        <div class="logo-text">CON<span>TACTO</span></div>
+      </div>
+
+      <div class="contacto-grid">
+
+        <div class="contacto-col-izq">
+          <div class="contact-hero">
+            <div class="contact-avatar">JS</div>
+            <div class="contact-name">Juan Desarrollador</div>
+            <div class="contact-role">Frontend Developer · Buenos Aires</div>
+
+            <div class="tech-stack">
+              <span class="tech-pill">JavaScript</span>
+              <span class="tech-pill">HTML5</span>
+              <span class="tech-pill">CSS3</span>
+              <span class="tech-pill">OMDb API</span>
+              <span class="tech-pill">LocalStorage</span>
+            </div>
+          </div>
+
+          <div class="contact-links">
+            <a class="contact-link-btn" href="#" target="_blank">
+              <i class="fa-brands fa-github contact-link-icon"></i>
+              <div>
+                <div class="contact-link-label">GitHub</div>
+              </div>
+            </a>
+
+            <a class="contact-link-btn" href="#" target="_blank">
+              <i class="fa-brands fa-linkedin contact-link-icon"></i>
+              <div>
+                <div class="contact-link-label">LinkedIn</div>
+              </div>
+            </a>
+
+            <a class="contact-link-btn" href="#">
+              <i class="fa-solid fa-envelope contact-link-icon"></i>
+              <div>
+                <div class="contact-link-label">Email</div>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="contacto-col-der">
+          <div class="contact-form">
+            <h3>Enviame un mensaje</h3>
+
+            <div class="form-group">
+              <label>Tu nombre</label>
+              <input type="text">
+            </div>
+
+            <div class="form-group">
+              <label>Tu email</label>
+              <input type="email">
+            </div>
+
+            <div class="form-group">
+              <label>Mensaje</label>
+              <textarea></textarea>
+            </div>
+
+            <button class="btn-send" onclick="mostrarToast('Mensaje enviado ✓')">
+              Enviar mensaje
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </div>
 
-  <!-- HISTORIAL -->
-  <section id="historial">
-    <h2>Historial</h2>
-    <div id="listaHistorial"></div>
-  </section>
+  <!-- MODAL FAVORITOS -->
+  <div id="formFavorito" class="modal-overlay">
+    <div class="modal">
+      <h3>Agregar a Favoritos</h3>
 
-  <!-- CONTACTO -->
-  <section id="contacto" style="display:none;">
-    <h2>Contacto</h2>
-    <p>nombre</p>
-    <iframe src="Assets/Logo.jpg" width="300" height="200">
-    </iframe>
-  </section>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prioridad</label>
+          <input type="number" id="prioridad" min="1" max="10">
+        </div>
 
-  <!-- FOOTER -->
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="categoria">
+            <option value="">Elegir...</option>
+            <option value="ver despues">Ver después</option>
+            <option value="favorita">Favorita</option>
+            <option value="recomendada">Recomendada</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Nota personal</label>
+        <textarea id="nota"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="cerrarFormulario()">Cancelar</button>
+        <button class="btn-save" onclick="guardarFavorito()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV MOBILE -->
+  <nav class="nav">
+    <button class="nav-btn active" onclick="mostrarSeccion('home')">
+      <i class="fa-solid fa-house nav-icon"></i>
+      Inicio
+    </button>
+
+    <button class="nav-btn" onclick="mostrarSeccion('busqueda')">
+      <i class="fa-solid fa-magnifying-glass nav-icon"></i>
+      Buscar
+    </button>
+
+    <button class="nav-btn" onclick="mostrarSeccion('historial')">
+      <i class="fa-solid fa-clock-rotate-left nav-icon"></i>
+      Historial
+    </button>
+
+    <button class="nav-btn" onclick="mostrarSeccion('favoritos')">
+      <i class="fa-solid fa-heart nav-icon"></i>
+      Favoritos
+    </button>
+
+    <button class="nav-btn" onclick="mostrarSeccion('contacto')">
+      <i class="fa-solid fa-user nav-icon"></i>
+      Contacto
+    </button>
+  </nav>
+
   <footer id="footer">
-    <p>&copy; 2023 App Películas. Todos los derechos reservados.</p>
-    <p>Desarrollado con ❤️ para amantes del cine.</p>
+    <p>&copy; 2025 CineApp</p>
   </footer>
 
   <script type="module" src="js/main.js"></script>
 
 </body>
-
 </html>

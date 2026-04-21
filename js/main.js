@@ -14,110 +14,213 @@ import {
 } from "./storage.js";
 
 let peliculaActual = null;
+let seccionAnterior = "home";
 
 // =====================
 //  NAVEGACIÓN
 // =====================
 
 window.mostrarSeccion = function (id) {
+  // Ocultar todas las secciones
   document.querySelectorAll("section").forEach(sec => {
-    sec.style.display = "none";
+    sec.classList.remove("active");
   });
 
-  document.getElementById(id).style.display = "flex";
+  // Mostrar la sección pedida
+  document.getElementById(id).classList.add("active");
 
+  // Actualizar nav inferior
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+  const navBtn = document.getElementById("nav-" + id);
+  if (navBtn) navBtn.classList.add("active");
+
+  // Guardar sección anterior (para el botón volver del detalle)
+  if (id !== "detalle") seccionAnterior = id;
+
+  // Renders específicos por sección
   if (id === "historial") mostrarHistorial();
   if (id === "favoritos") mostrarFavoritos();
+  if (id === "home")      renderHomeSections();
+  if (id === "busqueda")  mostrarHistorialEnBusqueda();
+};
+
+window.volverAtras = function () {
+  mostrarSeccion(seccionAnterior);
+};
+
+// =====================
+//  TOAST (reemplaza alert)
+// =====================
+
+window.mostrarToast = function (mensaje) {
+  const toast = document.getElementById("toast");
+  toast.textContent = mensaje;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2500);
 };
 
 // =====================
 //  BÚSQUEDA
 // =====================
 
-window.buscar = async function () {
+window.buscar = async function() {
   const texto = document.getElementById("inputBusqueda").value;
+
   if (!texto) return;
 
   const peliculas = await buscarPeliculas(texto);
+
+  // 👇 CAMBIAR TEXTO
+  const label = document.getElementById("labelResultados");
+  label.textContent = "Resultados de búsqueda";
+
   mostrarResultados(peliculas);
 };
 
-window.cargarTodasLasPeliculas = async function () {
-  const peliculas = await buscarTodasLasPeliculas();
-  mostrarResultadosEnHome(peliculas);
-};
-
 // =====================
-//  RENDER: RESULTADOS
+//  RENDER: RESULTADOS DE BÚSQUEDA
 // =====================
 
-function mostrarResultadosEnHome(peliculas) {
-  const contenedor = document.getElementById("home");
-  contenedor.innerHTML = "";
-
-  if (!peliculas || peliculas.length === 0) {
-    contenedor.innerHTML = "<p>No se encontraron resultados</p>";
-    return;
-  }
-
-  contenedor.innerHTML = peliculas.map(peli => crearCardHTML(peli)).join('');
-}
-
-function mostrarResultados(peliculas) {
+function mostrarResultados(peliculas, query = "") {
   const contenedor = document.getElementById("resultados");
-  contenedor.style.display = "flexbox";
   contenedor.innerHTML = "";
 
   if (!peliculas || peliculas.length === 0) {
-    contenedor.innerHTML = "<p>No se encontraron resultados</p>";
+    contenedor.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🎬</div>
+        <div class="empty-text">Sin resultados para "${query}"</div>
+      </div>`;
     return;
   }
 
-  contenedor.innerHTML = peliculas.map(peli => crearCardHTML(peli)).join('');
+  contenedor.innerHTML = peliculas.map(peli => crearCardHTML(peli)).join("");
 }
 
-// Reutilizable para home y resultados
-/*function crearCardHTML(peli) {
-  return `
-    <div class="card" onclick="verDetalle('${peli.imdbID}')">
-      <h3>${peli.Title}</h3>
-      <img src="${peli.Poster !== "N/A" ? peli.Poster : ""}" width="150">
-      <p>${peli.Year}</p>
-    </div>
-  `;
-}*/
+// =====================
+//  RENDER: CARRUSELES DEL HOME
+// =====================
+
+async function renderHomeSections() {
+  // Recomendados — carga desde la API
+  const recos = await buscarTodasLasPeliculas();
+  renderCarrusel("scrollRecomendados", recos);
+
+  // Favoritos e historial desde localStorage
+  renderCarrusel("scrollFavoritos",  obtenerFavoritos(), true);
+  renderCarrusel("scrollHistorial",  obtenerHistorial());
+}
+
+function renderCarrusel(contenedorId, peliculas, esFav = false) {
+  const contenedor = document.getElementById(contenedorId);
+  if (!contenedor) return;
+
+  contenedor.innerHTML = "";
+
+  if (!peliculas || peliculas.length === 0) {
+    contenedor.innerHTML = `<div style="padding:8px 0;color:var(--muted);font-size:13px">Sin elementos aún</div>`;
+    return;
+  }
+
+  contenedor.innerHTML = peliculas.map(peli => crearCardHTML(peli, esFav)).join("");
+}
 
 // =====================
 //  DETALLE
 // =====================
 
 window.verDetalle = async function (id) {
+  // Guardamos desde qué sección venimos
+  const activa = document.querySelector("section.active");
+  if (activa && activa.id !== "detalle") seccionAnterior = activa.id;
+
+  mostrarSeccion("detalle");
+
+  // Mostrar loader mientras carga
+  document.getElementById("detalleContenido").innerHTML = `
+    <div class="empty-state">
+      <div class="empty-text">Cargando...</div>
+    </div>`;
+
   const peli = await obtenerDetalle(id);
+  if (!peli) {
+    document.getElementById("detalleContenido").innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-text">No se pudo cargar la película</div>
+      </div>`;
+    return;
+  }
 
   peliculaActual = peli;
   guardarHistorial(peli);
-
   mostrarDetalle(peli);
-  mostrarSeccion("detalle");
 };
 
 function mostrarDetalle(peli) {
-  const contenedor = document.getElementById("detalleContenido");
+  const poster = peli.Poster && peli.Poster !== "N/A"
+    ? peli.Poster
+    : "https://via.placeholder.com/390x280/1a2236/457b9d?text=Sin+imagen";
 
-  contenedor.innerHTML = `
-    <h2>${peli.Title}</h2>
-    <img src="${peli.Poster}" width="200">
-    <p><strong>Año:</strong> ${peli.Year}</p>
-    <p><strong>Género:</strong> ${peli.Genre}</p>
-    <p><strong>Duración:</strong> ${peli.Runtime}</p>
-    <p><strong>Actores:</strong> ${peli.Actors}</p>
-    <p><strong>Director:</strong> ${peli.Director}</p>
-    <p><strong>Rating:</strong> ⭐ ${peli.imdbRating}</p>
-    <p>${peli.Plot}</p>
+  document.getElementById("detalleContenido").innerHTML = `
+    <div class="detalle-hero">
+      <img src="${poster}" alt="${peli.Title}">
+      <div class="detalle-hero-overlay"></div>
+    </div>
 
-    <button onclick="abrirFormulario()">❤️ Agregar a favoritos</button>
-    <button onclick="mostrarSeccion('busqueda')">⬅ Volver</button>
+    <div class="detalle-body">
+      <div class="detalle-title">${peli.Title}</div>
+
+      <div class="detalle-meta">
+        <span class="tag">${peli.Year ?? "—"}</span>
+        <span class="tag">${peli.Runtime ?? "—"}</span>
+        <span class="tag">${peli.Rated ?? "—"}</span>
+        <span class="rating">⭐ ${peli.imdbRating ?? "—"}</span>
+      </div>
+
+      <p class="detalle-plot">${peli.Plot ?? "Sin sinopsis disponible."}</p>
+
+      <div class="detalle-row">
+        <span>Director</span>
+        <span>${peli.Director ?? "—"}</span>
+      </div>
+      <div class="detalle-row">
+        <span>Actores</span>
+        <span>${peli.Actors ?? "—"}</span>
+      </div>
+      <div class="detalle-row">
+        <span>Género</span>
+        <span>${peli.Genre ?? "—"}</span>
+      </div>
+
+      <button class="btn-fav" onclick="abrirFormulario()">❤️ Agregar a favoritos</button>
+    </div>
   `;
+}
+
+function mostrarHistorialEnBusqueda() {
+  const historial = obtenerHistorial();
+  const contenedor = document.getElementById("resultados");
+
+  const inputVacio = document.getElementById("inputBusqueda").value.trim() === "";
+  if (!inputVacio) return;
+
+  contenedor.innerHTML = "";
+
+  if (!historial.length) {
+    contenedor.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🕐</div>
+        <div class="empty-text">Buscá una película para empezar</div>
+      </div>`;
+    return;
+  }
+
+  historial.forEach(peli => {
+    contenedor.insertAdjacentHTML("beforeend", crearCardHTML(peli));
+  });
 }
 
 // =====================
@@ -128,9 +231,16 @@ function mostrarHistorial() {
   const contenedor = document.getElementById("listaHistorial");
   const historial = obtenerHistorial();
 
-  contenedor.innerHTML = historial.length 
-    ? historial.map(peli => crearCardHTML(peli)).join('') 
-    : "<p>No hay historial aún</p>";
+  if (!historial.length) {
+    contenedor.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🕐</div>
+        <div class="empty-text">Aún no viste ninguna película</div>
+      </div>`;
+    return;
+  }
+
+  contenedor.innerHTML = historial.map(peli => crearCardHTML(peli)).join("");
 }
 
 // =====================
@@ -138,43 +248,56 @@ function mostrarHistorial() {
 // =====================
 
 window.abrirFormulario = function () {
-  document.getElementById("formFavorito").style.display = "block";
+  document.getElementById("formFavorito").classList.add("open");
 };
 
 window.cerrarFormulario = function () {
-  document.getElementById("formFavorito").style.display = "none";
+  document.getElementById("formFavorito").classList.remove("open");
 };
 
 window.guardarFavorito = function () {
   const prioridad = document.getElementById("prioridad").value;
   const categoria = document.getElementById("categoria").value;
-  const nota = document.getElementById("nota").value;
+  const nota     = document.getElementById("nota").value;
 
   if (!prioridad || prioridad <= 0) {
-    alert("La prioridad es obligatoria");
+    mostrarToast("⚠️ La prioridad es obligatoria");
+    return;
+  }
+
+  // Evitar duplicados
+  const yaGuardado = obtenerFavoritos().find(f => f.imdbID === peliculaActual.imdbID);
+  if (yaGuardado) {
+    mostrarToast("Ya está en favoritos");
+    cerrarFormulario();
     return;
   }
 
   guardarFavoritoEnStorage(peliculaActual, { prioridad, categoria, nota });
-
   cerrarFormulario();
-  alert("Agregado a favoritos ❤️");
+  mostrarToast("¡Agregado a favoritos ❤️!");
 };
 
 function mostrarFavoritos() {
   const contenedor = document.getElementById("listaFavoritos");
-  const favoritos = obtenerFavoritos();
+  const favoritos  = obtenerFavoritos();
 
-  contenedor.innerHTML = "";
+  if (!favoritos.length) {
+    contenedor.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">❤️</div>
+        <div class="empty-text">No tenés favoritos aún</div>
+      </div>`;
+    return;
+  }
 
-  contenedor.innerHTML = favoritos.length 
-    ? favoritos.map(peli => crearCardHTML(peli, true)).join('') 
-    : "<p>No hay favoritos</p>";
+  contenedor.innerHTML = favoritos.map(peli => crearCardHTML(peli, true)).join("");
 }
 
 window.eliminarFavorito = function (id) {
   eliminarFavoritoDeStorage(id);
   mostrarFavoritos();
+  mostrarToast("Eliminado de favoritos");
 };
 
 // =====================
@@ -182,5 +305,5 @@ window.eliminarFavorito = function (id) {
 // =====================
 
 window.onload = function () {
-  cargarTodasLasPeliculas();
+  mostrarSeccion("home");
 };
