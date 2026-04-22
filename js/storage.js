@@ -1,51 +1,26 @@
-// =====================
-//  storage.js
-//  Manejo de localStorage: historial y favoritos
-// =====================
-
-// --- HISTORIAL ---
-
-export function guardarHistorial(peli) {
-  let historial = JSON.parse(localStorage.getItem("historial")) || [];
-
-  // Evitar duplicados
-  historial = historial.filter(item => item.imdbID !== peli.imdbID);
-
-  historial.unshift({
-    Title: peli.Title,
-    Poster: peli.Poster,
-    imdbID: peli.imdbID,
-  });
-
-  localStorage.setItem("historial", JSON.stringify(historial));
-}
-
 export function obtenerHistorial() {
-  return JSON.parse(localStorage.getItem("historial")) || [];
+  return JSON.parse(localStorage.getItem("historial") || "[]");
 }
-
-// --- FAVORITOS ---
 
 export function obtenerFavoritos() {
-  return JSON.parse(localStorage.getItem("favoritos")) || [];
+  return JSON.parse(localStorage.getItem("favoritos") || "[]");
 }
 
-export function guardarFavoritoEnStorage(peliculaActual, { prioridad, categoria, nota }) {
-  const favoritos = obtenerFavoritos();
+export function guardarHistorial(peli) {
+  let h = obtenerHistorial();
+  h = h.filter(p => p.id !== peli.id);
+  h.unshift(peli);
+  h = h.slice(0, 20);
+  localStorage.setItem("historial", JSON.stringify(h));
+}
 
-  favoritos.push({
-    Title: peliculaActual.Title,
-    Poster: peliculaActual.Poster,
-    imdbID: peliculaActual.imdbID,
-    prioridad,
-    categoria,
-    nota,
-  });
-
-  localStorage.setItem("favoritos", JSON.stringify(favoritos));
+export function guardarFavoritoEnStorage(peli, extras) {
+  const favs = obtenerFavoritos().filter(p => p.id !== peli.id);
+  favs.push({ ...peli, ...extras });
+  localStorage.setItem("favoritos", JSON.stringify(favs));
 }
 
 export function eliminarFavoritoDeStorage(id) {
-  const favoritos = obtenerFavoritos().filter(peli => peli.imdbID !== id);
-  localStorage.setItem("favoritos", JSON.stringify(favoritos));
+  const favs = obtenerFavoritos().filter(p => p.id !== id);
+  localStorage.setItem("favoritos", JSON.stringify(favs));
 }

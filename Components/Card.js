@@ -1,51 +1,53 @@
-// =====================
-//  Card.js
-//  Genera el HTML de cada card de película
-// =====================
+export function crearCardHTML(p, esFav = false) {
+  const poster = p.poster_path
+    ? `https://image.tmdb.org/t/p/w500${p.poster_path}`
+    : null;
 
-export function crearCardHTML(peli, esFavorito = false) {
-  const poster = peli.Poster && peli.Poster !== "N/A"
-    ? peli.Poster
-    : "https://via.placeholder.com/140x200/1a2236/457b9d?text=Sin+imagen";
+  const rating = p.vote_average ? p.vote_average.toFixed(1) : null;
+  const year = (p.release_date || "").slice(0, 4);
 
-  if (esFavorito) {
-    // ── Card favorito: imagen + info con botón siempre al fondo ──
+  const posterHTML = poster
+    ? `<img src="${poster}" alt="${p.title}" loading="lazy">`
+    : `<div class="card-poster-fallback">
+        <span class="card-fallback-icon">🎬</span>
+        <span class="card-fallback-title">${p.title}</span>
+       </div>`;
+
+  if (esFav) {
     return `
-      <div class="card card--fav" onclick="verDetalle('${peli.imdbID}')">
-        <img src="${poster}" alt="${peli.Title}" loading="lazy">
-        <div class="card-info">
-
-          <div class="card-info-top">
-            <div class="card-title">${peli.Title}</div>
-            <div class="card-year">${peli.Year ?? ""}</div>
-            <hr class="card-divider">
-            <div class="card-meta">
-              ${peli.categoria ? `<span class="badge-cat">${peli.categoria}</span>` : ""}
-              ${peli.prioridad ? `<span class="badge-prio">★ ${peli.prioridad}/10</span>` : ""}
-            </div>
-            ${peli.nota ? `<div class="card-nota">"${peli.nota}"</div>` : ""}
+      <div class="card card--fav" onclick="verDetalle(${p.id})">
+        <div class="card-img-wrap">
+          ${posterHTML}
+          <div class="card-img-overlay"></div>
+          <div class="card-badges">
+            ${p.categoria ? `<span class="badge badge--cat">${p.categoria}</span>` : ""}
+            ${p.prioridad ? `<span class="badge badge--prio">${p.prioridad}</span>` : ""}
           </div>
-
-          <button
-            class="btn-eliminar"
-            onclick="event.stopPropagation(); eliminarFavorito('${peli.imdbID}')"
-          >
-            🗑 Eliminar
+          ${rating ? `<div class="card-rating-chip">★ ${rating}</div>` : ""}
+        </div>
+        <div class="card-info">
+          <p class="card-title">${p.title}</p>
+          <p class="card-year">${year || "—"}</p>
+          ${p.nota ? `<p class="card-nota">"${p.nota}"</p>` : ""}
+          <button class="btn-eliminar" onclick="event.stopPropagation(); eliminarFavorito(${p.id})">
+            Quitar de favoritos
           </button>
-
         </div>
       </div>
     `;
   }
 
-  // ── Card común ──
   return `
-  <div class="card" onclick="verDetalle('${peli.imdbID}')">
-    <img src="${poster}" alt="${peli.Title}" loading="lazy">
-    <div class="card-info">
-      <div class="card-title">${peli.Title}</div>
-      <div class="card-year">${peli.Year ?? ""}</div>
+    <div class="card" onclick="verDetalle(${p.id})">
+      <div class="card-img-wrap">
+        ${posterHTML}
+        <div class="card-img-overlay"></div>
+        ${rating ? `<div class="card-rating-chip">★ ${rating}</div>` : ""}
+        <div class="card-overlay-info">
+          <p class="card-title">${p.title}</p>
+          <p class="card-year">${year || "—"}</p>
+        </div>
+      </div>
     </div>
-  </div>
-`;
+  `;
 }

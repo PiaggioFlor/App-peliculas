@@ -1,9 +1,8 @@
 // =====================
 //  main.js
-//  Lógica de UI y navegación
 // =====================
 
-import { buscarPeliculas, obtenerDetalle, buscarTodasLasPeliculas } from "./api.js";
+import { buscarPeliculas, obtenerDetalle, obtenerPopulares, buscarSeries } from "./api.js";
 import { crearCardHTML } from "../Components/Card.js";
 import {
   guardarHistorial,
@@ -15,295 +14,348 @@ import {
 
 let peliculaActual = null;
 let seccionAnterior = "home";
+let filtroActivo = "todos";
 
 // =====================
-//  NAVEGACIÓN
+// NAVEGACIÓN
 // =====================
 
 window.mostrarSeccion = function (id) {
-  // Ocultar todas las secciones
-  document.querySelectorAll("section").forEach(sec => {
-    sec.classList.remove("active");
-  });
-
-  // Mostrar la sección pedida
+  document.querySelectorAll("section").forEach(sec =>
+    sec.classList.remove("active")
+  );
   document.getElementById(id).classList.add("active");
 
-  // Actualizar nav inferior
-  document.querySelectorAll(".nav-btn").forEach(btn => {
-    btn.classList.remove("active");
-  });
-  const navBtn = document.getElementById("nav-" + id);
-  if (navBtn) navBtn.classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach(btn =>
+    btn.classList.remove("active")
+  );
+  document.getElementById("nav-" + id)?.classList.add("active");
 
-  // Guardar sección anterior (para el botón volver del detalle)
+  document.querySelectorAll(".sidebar-nav-item").forEach(item =>
+    item.classList.remove("active")
+  );
+  document.getElementById("snav-" + id)?.classList.add("active");
+
   if (id !== "detalle") seccionAnterior = id;
 
-  // Renders específicos por sección
+  if (id === "home") renderHome();
   if (id === "historial") mostrarHistorial();
   if (id === "favoritos") mostrarFavoritos();
-  if (id === "home")      renderHomeSections();
-  if (id === "busqueda")  mostrarHistorialEnBusqueda();
+  if (id === "busqueda") mostrarHistorialEnBusqueda();
 };
 
-window.volverAtras = function () {
-  mostrarSeccion(seccionAnterior);
+window.volverAtras = () => mostrarSeccion(seccionAnterior);
+
+// =====================
+// TOAST
+// =====================
+
+window.mostrarToast = function (msg, tipo = "info") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show toast--" + tipo;
+  setTimeout(() => {
+    t.classList.remove("show");
+  }, 2500);
 };
 
 // =====================
-//  TOAST (reemplaza alert)
+// BÚSQUEDA Y FILTROS
 // =====================
 
-window.mostrarToast = function (mensaje) {
-  const toast = document.getElementById("toast");
-  toast.textContent = mensaje;
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2500);
-};
-
-// =====================
-//  BÚSQUEDA
-// =====================
-
-window.buscar = async function() {
-  const texto = document.getElementById("inputBusqueda").value;
-
+window.buscar = async function () {
+  const texto = document.getElementById("inputBusqueda").value.trim();
   if (!texto) return;
 
-  const peliculas = await buscarPeliculas(texto);
+  document.getElementById("labelResultados").textContent = `Resultados para "${texto}"`;
 
-  // 👇 CAMBIAR TEXTO
-  const label = document.getElementById("labelResultados");
-  label.textContent = "Resultados de búsqueda";
+  const spinner = document.getElementById("resultados");
+  spinner.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Buscando...</p></div>`;
 
-  mostrarResultados(peliculas);
+  let pelis = await buscarPeliculas(texto);
+
+  if (filtroActivo === "peliculas") {
+    pelis = pelis.filter(p => p.release_date);
+  } else if (filtroActivo === "series") {
+    pelis = pelis.filter(p => !p.release_date);
+  }
+
+  renderResultados(pelis, texto);
 };
 
-// =====================
-//  RENDER: RESULTADOS DE BÚSQUEDA
-// =====================
+window.setFiltro = function (filtro, el) {
+  filtroActivo = filtro;
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+  el.classList.add("active");
 
-function mostrarResultados(peliculas, query = "") {
-  const contenedor = document.getElementById("resultados");
-  contenedor.innerHTML = "";
+  const texto = document.getElementById("inputBusqueda").value.trim();
+  if (texto) buscar();
+};
 
-  if (!peliculas || peliculas.length === 0) {
-    contenedor.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🎬</div>
-        <div class="empty-text">Sin resultados para "${query}"</div>
-      </div>`;
+function renderResultados(pelis, query) {
+  const cont = document.getElementById("resultados");
+  cont.innerHTML = "";
+
+  if (!pelis?.length) {
+    cont.innerHTML = emptyStateHTML(
+      "🔍",
+      `Sin resultados para "${query}"`,
+      "Probá con otro título o término de búsqueda."
+    );
     return;
   }
 
-  contenedor.innerHTML = peliculas.map(peli => crearCardHTML(peli)).join("");
+  cont.innerHTML = pelis.map(p => crearCardHTML(p)).join("");
 }
 
 // =====================
-//  RENDER: CARRUSELES DEL HOME
+// HOME
 // =====================
 
-async function renderHomeSections() {
-  // Recomendados — carga desde la API
-  const recos = await buscarTodasLasPeliculas();
+async function renderHome() {
+  renderCarrusel("scrollRecomendados", null, false, true);
+  renderCarrusel("scrollFavoritos", obtenerFavoritos(), true);
+  renderCarrusel("scrollHistorial", obtenerHistorial());
+
+  const recos = await obtenerPopulares();
   renderCarrusel("scrollRecomendados", recos);
-
-  // Favoritos e historial desde localStorage
-  renderCarrusel("scrollFavoritos",  obtenerFavoritos(), true);
-  renderCarrusel("scrollHistorial",  obtenerHistorial());
 }
 
-function renderCarrusel(contenedorId, peliculas, esFav = false) {
-  const contenedor = document.getElementById(contenedorId);
-  if (!contenedor) return;
+function renderCarrusel(id, pelis, esFav = false, loading = false) {
+  const cont = document.getElementById(id);
+  if (!cont) return;
 
-  contenedor.innerHTML = "";
-
-  if (!peliculas || peliculas.length === 0) {
-    contenedor.innerHTML = `<div style="padding:8px 0;color:var(--muted);font-size:13px">Sin elementos aún</div>`;
+  if (loading) {
+    cont.innerHTML = `<div class="carousel-loading"><div class="spinner"></div></div>`;
     return;
   }
 
-  contenedor.innerHTML = peliculas.map(peli => crearCardHTML(peli, esFav)).join("");
+  if (!pelis?.length) {
+    cont.innerHTML = `<div class="carousel-empty">Sin contenido aún</div>`;
+    return;
+  }
+
+  cont.innerHTML = pelis.map(p => crearCardHTML(p, esFav)).join("");
 }
 
 // =====================
-//  DETALLE
+// DETALLE
 // =====================
 
 window.verDetalle = async function (id) {
-  // Guardamos desde qué sección venimos
   const activa = document.querySelector("section.active");
   if (activa && activa.id !== "detalle") seccionAnterior = activa.id;
 
   mostrarSeccion("detalle");
 
-  // Mostrar loader mientras carga
-  document.getElementById("detalleContenido").innerHTML = `
-    <div class="empty-state">
-      <div class="empty-text">Cargando...</div>
-    </div>`;
+  const cont = document.getElementById("detalleContenido");
+  cont.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Cargando...</p></div>`;
 
   const peli = await obtenerDetalle(id);
   if (!peli) {
-    document.getElementById("detalleContenido").innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">⚠️</div>
-        <div class="empty-text">No se pudo cargar la película</div>
-      </div>`;
+    cont.innerHTML = emptyStateHTML("⚠️", "No se pudo cargar", "Intentá de nuevo más tarde.");
     return;
   }
 
   peliculaActual = peli;
   guardarHistorial(peli);
-  mostrarDetalle(peli);
+
+  renderDetalle(peli);
 };
 
-function mostrarDetalle(peli) {
-  const poster = peli.Poster && peli.Poster !== "N/A"
-    ? peli.Poster
-    : "https://via.placeholder.com/390x280/1a2236/457b9d?text=Sin+imagen";
+function renderDetalle(p) {
+  const poster = p.poster_path
+    ? `https://image.tmdb.org/t/p/w780${p.poster_path}`
+    : null;
+
+  const rating = p.vote_average ? p.vote_average.toFixed(1) : "—";
+  const year = (p.release_date || "").slice(0, 4);
+
+  const esFav = obtenerFavoritos().some(f => f.id === p.id);
+
+  const heroHTML = poster
+    ? `<img src="${poster}" class="detalle-img" alt="${p.title}" loading="lazy">`
+    : `<div class="detalle-img-fallback"><span>🎬</span></div>`;
 
   document.getElementById("detalleContenido").innerHTML = `
-    <div class="detalle-hero">
-      <img src="${poster}" alt="${peli.Title}">
-      <div class="detalle-hero-overlay"></div>
-    </div>
-
-    <div class="detalle-body">
-      <div class="detalle-title">${peli.Title}</div>
-
-      <div class="detalle-meta">
-        <span class="tag">${peli.Year ?? "—"}</span>
-        <span class="tag">${peli.Runtime ?? "—"}</span>
-        <span class="tag">${peli.Rated ?? "—"}</span>
-        <span class="rating">⭐ ${peli.imdbRating ?? "—"}</span>
+    <div class="detalle-container">
+      <div class="detalle-hero">
+        ${heroHTML}
+        <div class="detalle-hero-overlay"></div>
+        <div class="detalle-hero-rating">★ ${rating}</div>
       </div>
 
-      <p class="detalle-plot">${peli.Plot ?? "Sin sinopsis disponible."}</p>
+      <div class="detalle-info">
+        <h1 class="detalle-title">${p.title}</h1>
 
-      <div class="detalle-row">
-        <span>Director</span>
-        <span>${peli.Director ?? "—"}</span>
-      </div>
-      <div class="detalle-row">
-        <span>Actores</span>
-        <span>${peli.Actors ?? "—"}</span>
-      </div>
-      <div class="detalle-row">
-        <span>Género</span>
-        <span>${peli.Genre ?? "—"}</span>
-      </div>
+        <div class="detalle-meta">
+          ${year ? `<span class="tag">${year}</span>` : ""}
+          ${p.runtime ? `<span class="tag">${p.runtime} min</span>` : ""}
+          ${p.genre ? p.genre.split(", ").map(g => `<span class="tag">${g}</span>`).join("") : ""}
+        </div>
 
-      <button class="btn-fav" onclick="abrirFormulario()">❤️ Agregar a favoritos</button>
+        <p class="detalle-plot">${p.overview || "Sin sinopsis disponible."}</p>
+
+        <div class="detalle-rows">
+          ${detalleRow("Director", p.director)}
+          ${detalleRow("Actores", p.actors)}
+        </div>
+
+        <button
+          class="btn-fav ${esFav ? "btn-fav--active" : ""}"
+          onclick="toggleFavorito()"
+          id="btnFav"
+        >
+          ${esFav ? "✓ En favoritos" : "❤ Agregar a favoritos"}
+        </button>
+      </div>
     </div>
   `;
 }
 
-function mostrarHistorialEnBusqueda() {
-  const historial = obtenerHistorial();
-  const contenedor = document.getElementById("resultados");
-
-  const inputVacio = document.getElementById("inputBusqueda").value.trim() === "";
-  if (!inputVacio) return;
-
-  contenedor.innerHTML = "";
-
-  if (!historial.length) {
-    contenedor.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🕐</div>
-        <div class="empty-text">Buscá una película para empezar</div>
-      </div>`;
-    return;
-  }
-
-  historial.forEach(peli => {
-    contenedor.insertAdjacentHTML("beforeend", crearCardHTML(peli));
-  });
+function detalleRow(label, valor) {
+  if (!valor || valor === "No disponible") return "";
+  return `
+    <div class="detalle-row">
+      <span class="detalle-row-label">${label}</span>
+      <span class="detalle-row-valor">${valor}</span>
+    </div>
+  `;
 }
 
 // =====================
-//  HISTORIAL
+// HISTORIAL
 // =====================
 
 function mostrarHistorial() {
-  const contenedor = document.getElementById("listaHistorial");
-  const historial = obtenerHistorial();
+  const h = obtenerHistorial();
+  const cont = document.getElementById("listaHistorial");
 
-  if (!historial.length) {
-    contenedor.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🕐</div>
-        <div class="empty-text">Aún no viste ninguna película</div>
-      </div>`;
+  if (!h.length) {
+    cont.innerHTML = emptyStateHTML("🕐", "Sin historial", "Las películas que veas aparecerán acá.");
     return;
   }
 
-  contenedor.innerHTML = historial.map(peli => crearCardHTML(peli)).join("");
+  cont.innerHTML = h.map(p => crearCardHTML(p)).join("");
+}
+
+function mostrarHistorialEnBusqueda() {
+  const inputVacio = document.getElementById("inputBusqueda").value.trim() === "";
+  if (!inputVacio) return;
+
+  const h = obtenerHistorial();
+  document.getElementById("labelResultados").textContent = "Visto recientemente";
+
+  const cont = document.getElementById("resultados");
+
+  if (!h.length) {
+    cont.innerHTML = emptyStateHTML("🎬", "Nada por acá", "Buscá una película o serie para empezar.");
+    return;
+  }
+
+  cont.innerHTML = h.map(p => crearCardHTML(p)).join("");
 }
 
 // =====================
-//  FAVORITOS
+// FAVORITOS
 // =====================
 
-window.abrirFormulario = function () {
-  document.getElementById("formFavorito").classList.add("open");
+window.toggleFavorito = function () {
+  if (!peliculaActual) return;
+  const esFav = obtenerFavoritos().some(f => f.id === peliculaActual.id);
+
+  if (esFav) {
+    eliminarFavoritoDeStorage(peliculaActual.id);
+    mostrarToast("Eliminado de favoritos", "error");
+    actualizarBtnFav(false);
+  } else {
+    abrirFormulario();
+  }
 };
 
-window.cerrarFormulario = function () {
+function actualizarBtnFav(esFav) {
+  const btn = document.getElementById("btnFav");
+  if (!btn) return;
+  btn.className = "btn-fav " + (esFav ? "btn-fav--active" : "");
+  btn.textContent = esFav ? "✓ En favoritos" : "❤ Agregar a favoritos";
+}
+
+window.abrirFormulario = () =>
+  document.getElementById("formFavorito").classList.add("open");
+
+window.cerrarFormulario = () =>
   document.getElementById("formFavorito").classList.remove("open");
-};
 
 window.guardarFavorito = function () {
   const prioridad = document.getElementById("prioridad").value;
   const categoria = document.getElementById("categoria").value;
-  const nota     = document.getElementById("nota").value;
+  const nota = document.getElementById("nota").value;
 
-  if (!prioridad || prioridad <= 0) {
-    mostrarToast("⚠️ La prioridad es obligatoria");
+  if (!prioridad) {
+    mostrarToast("Ingresá una prioridad", "error");
     return;
   }
 
-  // Evitar duplicados
-  const yaGuardado = obtenerFavoritos().find(f => f.imdbID === peliculaActual.imdbID);
-  if (yaGuardado) {
-    mostrarToast("Ya está en favoritos");
+  const existe = obtenerFavoritos().find(f => f.id === peliculaActual.id);
+  if (existe) {
+    mostrarToast("Ya está en favoritos", "info");
     cerrarFormulario();
     return;
   }
 
   guardarFavoritoEnStorage(peliculaActual, { prioridad, categoria, nota });
   cerrarFormulario();
-  mostrarToast("¡Agregado a favoritos ❤️!");
+  mostrarToast("Guardado en favoritos ❤", "success");
+  actualizarBtnFav(true);
+
+  // Limpiar campos
+  document.getElementById("prioridad").value = "";
+  document.getElementById("categoria").value = "";
+  document.getElementById("nota").value = "";
 };
 
 function mostrarFavoritos() {
-  const contenedor = document.getElementById("listaFavoritos");
-  const favoritos  = obtenerFavoritos();
+  const f = obtenerFavoritos();
+  const cont = document.getElementById("listaFavoritos");
 
-  if (!favoritos.length) {
-    contenedor.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">❤️</div>
-        <div class="empty-text">No tenés favoritos aún</div>
-      </div>`;
+  if (!f.length) {
+    cont.innerHTML = emptyStateHTML(
+      "❤",
+      "Sin favoritos aún",
+      "Buscá una película y guardala con el botón ❤.",
+      "Ir a buscar",
+      "mostrarSeccion('busqueda')"
+    );
     return;
   }
 
-  contenedor.innerHTML = favoritos.map(peli => crearCardHTML(peli, true)).join("");
+  cont.innerHTML = f.map(p => crearCardHTML(p, true)).join("");
 }
 
 window.eliminarFavorito = function (id) {
   eliminarFavoritoDeStorage(id);
+  mostrarToast("Eliminado de favoritos", "error");
   mostrarFavoritos();
-  mostrarToast("Eliminado de favoritos");
+  if (peliculaActual?.id === id) actualizarBtnFav(false);
 };
 
 // =====================
-//  INIT
+// HELPERS
 // =====================
 
-window.onload = function () {
-  mostrarSeccion("home");
-};
+function emptyStateHTML(icon, titulo, subtitulo, btnLabel = null, btnAction = null) {
+  return `
+    <div class="empty-state">
+      <div class="empty-icon">${icon}</div>
+      <h4 class="empty-title">${titulo}</h4>
+      <p class="empty-text">${subtitulo}</p>
+      ${btnLabel ? `<button class="empty-btn" onclick="${btnAction}">${btnLabel}</button>` : ""}
+    </div>
+  `;
+}
+
+// =====================
+// INIT
+// =====================
+
+window.onload = () => mostrarSeccion("home");
