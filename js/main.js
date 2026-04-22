@@ -42,6 +42,7 @@ window.mostrarSeccion = function (id) {
   if (id === "historial") mostrarHistorial();
   if (id === "favoritos") mostrarFavoritos();
   if (id === "busqueda") mostrarHistorialEnBusqueda();
+  if (id === "contacto")  iniciarMapa();
 };
 
 window.volverAtras = () => mostrarSeccion(seccionAnterior);
@@ -352,6 +353,27 @@ function emptyStateHTML(icon, titulo, subtitulo, btnLabel = null, btnAction = nu
       ${btnLabel ? `<button class="empty-btn" onclick="${btnAction}">${btnLabel}</button>` : ""}
     </div>
   `;
+}
+
+
+// =====================
+//  MAPA CONTACTOS
+// =====================
+
+let mapa = null;
+
+function iniciarMapa() {
+  if (mapa) return; // evita crear dos veces
+
+  mapa = new maplibregl.Map({
+    container: "map",
+    style: "https://tiles.openfreemap.org/styles/liberty",
+    center: [-58.267530959465,-34.774617363703435],
+    zoom: 15
+  });
+  new maplibregl.Marker({ color: "red" })
+  .setLngLat([-58.267530959465,-34.774617363703435])
+  .addTo(mapa);
 }
 
 // =====================

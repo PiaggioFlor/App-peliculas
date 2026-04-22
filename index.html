@@ -6,8 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CineApp</title>
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/desktop.css">
+  <!--Comento esta parte por si hay algun error  -->
+  <!-- <link rel="stylesheet" href="css/desktop.css">-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- MAPLIBRE --> 
+  <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script> 
+  <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -87,12 +91,8 @@
         <div class="search-bar-row">
           <div class="search-input-wrap">
             <i class="fa-solid fa-magnifying-glass search-input-icon"></i>
-            <input
-              type="text"
-              id="inputBusqueda"
-              placeholder="Película, serie, actor..."
-              onkeydown="if(event.key==='Enter') buscar()"
-            >
+            <input type="text" id="inputBusqueda" placeholder="Película, serie, actor..."
+              onkeydown="if(event.key==='Enter') buscar()">
           </div>
           <button onclick="buscar()">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -210,6 +210,15 @@
           </div>
         </div>
       </div>
+      <div class="mapSection">
+        <div class="mapContainer">
+          <h1>Donde estamos</h1>
+          <div id="map">
+
+          </div>
+        </div>
+
+      </div>
     </section>
 
   </div>
@@ -288,4 +297,5 @@
 
   <script type="module" src="js/main.js"></script>
 </body>
+
 </html>
