@@ -381,3 +381,37 @@ function iniciarMapa() {
 // =====================
 
 window.onload = () => mostrarSeccion("home");
+
+// =====================
+// ENVIAR MAIL
+// =====================
+
+window.enviarEmail = function () {
+  const nombre = document.getElementById("nombre").value;
+  const email = document.getElementById("email").value;
+  const mensaje = document.getElementById("mensaje").value;
+
+  if (!nombre || !email || !mensaje) {
+    mostrarToast("Completá todos los campos", "error");
+    return;
+  }
+
+  const templateParams = {
+    from_name: nombre,
+    from_email: email,
+    message: mensaje
+  };
+
+  emailjs.send("service_lk3as03", "template_whuywlb", templateParams)
+    .then(() => {
+      mostrarToast("Mensaje enviado ✓", "success");
+
+      document.getElementById("nombre").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("mensaje").value = "";
+    })
+    .catch((error) => {
+      console.error(error);
+      mostrarToast("Error al enviar", "error");
+    });
+};

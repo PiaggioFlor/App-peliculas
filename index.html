@@ -150,74 +150,104 @@
       </div>
 
       <div class="contacto-grid">
+
+        <!-- IZQUIERDA: EQUIPO -->
         <div class="contacto-col-izq">
+
           <div class="contact-hero">
             <div class="contact-avatar">DEV</div>
-            <div class="contact-name">Desarrollador</div>
-            <div class="contact-role">Frontend Developer · Buenos Aires</div>
+            <div class="contact-name">Equipo de desarrollo</div>
+            <div class="contact-role">Proyecto académico · Buenos Aires</div>
+
             <div class="tech-stack">
               <span class="tech-pill">JavaScript</span>
-              <span class="tech-pill">HTML5</span>
-              <span class="tech-pill">CSS3</span>
+              <span class="tech-pill">HTML</span>
+              <span class="tech-pill">CSS</span>
               <span class="tech-pill">TMDb API</span>
               <span class="tech-pill">LocalStorage</span>
             </div>
           </div>
 
-          <div class="contact-links">
-            <a class="contact-link-btn" href="#" target="_blank">
-              <i class="fa-brands fa-github contact-link-icon"></i>
-              <div>
-                <div class="contact-link-label">GitHub</div>
-                <div class="contact-link-sub">Ver repositorios</div>
-              </div>
-            </a>
-            <a class="contact-link-btn" href="#" target="_blank">
-              <i class="fa-brands fa-linkedin contact-link-icon"></i>
-              <div>
-                <div class="contact-link-label">LinkedIn</div>
-                <div class="contact-link-sub">Conectar</div>
-              </div>
-            </a>
-            <a class="contact-link-btn" href="#">
-              <i class="fa-solid fa-envelope contact-link-icon"></i>
-              <div>
-                <div class="contact-link-label">Email</div>
-                <div class="contact-link-sub">Escribime</div>
-              </div>
-            </a>
+          <!-- MIEMBRO 1 -->
+          <div class="dev-card">
+            <div class="dev-info">
+              <div class="dev-name">Florencia Belen Piaggio</div>
+              <div class="dev-role">Full Stack Developerr</div>
+            </div>
+
+            <div class="dev-links">
+              <a href="https://github.com/PiaggioFlor" target="_blank" class="contact-link-btn">
+                <i class="fa-brands fa-github"></i>
+                <span>GitHub</span>
+              </a>
+
+              <a href="https://linkedin.com/in/florencia-piaggio" target="_blank" class="contact-link-btn">
+                <i class="fa-brands fa-linkedin"></i>
+                <span>LinkedIn</span>
+              </a>
+            </div>
           </div>
+
+          <!-- MIEMBRO 2 -->
+          <div class="dev-card">
+            <div class="dev-info">
+              <div class="dev-name">Diego Rolon</div>
+              <div class="dev-role">Full Stack Developer</div>
+            </div>
+
+            <div class="dev-links">
+              <a href="https://github.com/" target="_blank" class="contact-link-btn">
+                <i class="fa-brands fa-github"></i>
+                <span>GitHub</span>
+              </a>
+
+              <a href="https://linkedin.com/" target="_blank" class="contact-link-btn">
+                <i class="fa-brands fa-linkedin"></i>
+                <span>LinkedIn</span>
+              </a>
+            </div>
+          </div>
+
+          <p class="contact-note">
+            Este proyecto fue desarrollado como trabajo académico.  
+            Si querés contactarnos, podés usar el formulario.
+          </p>
+
         </div>
 
+        <!-- DERECHA: FORMULARIO -->
         <div class="contacto-col-der">
           <div class="contact-form">
-            <h3>Enviame un mensaje</h3>
+            <h3>Enviar mensaje</h3>
+
             <div class="form-group">
-              <label>Tu nombre</label>
-              <input type="text" placeholder="Juan García">
-            </div>
+             <label>Nombre completo</label>
+              <input type="text" id="nombre">
+
             <div class="form-group">
-              <label>Tu email</label>
-              <input type="email" placeholder="juan@mail.com">
+              <label>Correo electrónico</label>
+              <input type="email" id="email">
             </div>
+
             <div class="form-group">
               <label>Mensaje</label>
-              <textarea placeholder="Hola, quería consultarte..."></textarea>
+              <textarea id="mensaje"></textarea>
             </div>
-            <button class="btn-send" onclick="mostrarToast('Mensaje enviado ✓', 'success')">
+
+            <button class="btn-send" onclick="enviarEmail()">
               Enviar mensaje
             </button>
           </div>
         </div>
+
       </div>
+
+      <!-- MAPA -->
       <div class="mapSection">
         <div class="mapContainer">
-          <h1>Donde estamos</h1>
-          <div id="map">
-
-          </div>
+          <h1>Ubicación</h1>
+          <div id="map"></div>
         </div>
-
       </div>
     </section>
 
@@ -294,7 +324,13 @@
   </footer>
 
   <div id="toast" class="toast"></div>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
+  <script>
+    (function(){
+      emailjs.init("_w70MoWkgqBPqdry6"); 
+    })();
+  </script>
   <script type="module" src="js/main.js"></script>
 </body>
 
