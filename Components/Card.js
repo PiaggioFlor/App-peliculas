@@ -15,7 +15,7 @@ export function crearCardHTML(p, esFav = false) {
 
   if (esFav) {
     return `
-      <div class="card card--fav" onclick="verDetalle(${p.id})">
+      <div class="card card--fav" onclick="verDetalle(${p.id},'${p.media_type}')">
         <div class="card-img-wrap">
           ${posterHTML}
           <div class="card-img-overlay"></div>
@@ -38,7 +38,7 @@ export function crearCardHTML(p, esFav = false) {
   }
 
   return `
-    <div class="card" onclick="verDetalle(${p.id})">
+    <div class="card" onclick="verDetalle(${p.id},'${p.media_type}')">
       <div class="card-img-wrap">
         ${posterHTML}
         <div class="card-img-overlay"></div>

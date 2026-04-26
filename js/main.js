@@ -2,7 +2,12 @@
 //  main.js
 // =====================
 
-import { buscarPeliculas, obtenerDetalle, obtenerPopulares, buscarSeries } from "./api.js";
+import {
+  buscarPeliculas,
+  obtenerDetalle,
+  obtenerPopulares,
+  buscarSeries,
+} from "./api.js";
 import { crearCardHTML } from "../Components/Card.js";
 import {
   guardarHistorial,
@@ -16,24 +21,27 @@ let peliculaActual = null;
 let seccionAnterior = "home";
 let filtroActivo = "todos";
 
+let paginaActual = 1;
+let totalPaginas = 1;
+let ultimaBusqueda = "";
 // =====================
 // NAVEGACIÓN
 // =====================
 
 window.mostrarSeccion = function (id) {
-  document.querySelectorAll("section").forEach(sec =>
-    sec.classList.remove("active")
-  );
+  document
+    .querySelectorAll("section")
+    .forEach((sec) => sec.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 
-  document.querySelectorAll(".nav-btn").forEach(btn =>
-    btn.classList.remove("active")
-  );
+  document
+    .querySelectorAll(".nav-btn")
+    .forEach((btn) => btn.classList.remove("active"));
   document.getElementById("nav-" + id)?.classList.add("active");
 
-  document.querySelectorAll(".sidebar-nav-item").forEach(item =>
-    item.classList.remove("active")
-  );
+  document
+    .querySelectorAll(".sidebar-nav-item")
+    .forEach((item) => item.classList.remove("active"));
   document.getElementById("snav-" + id)?.classList.add("active");
 
   if (id !== "detalle") seccionAnterior = id;
@@ -42,7 +50,7 @@ window.mostrarSeccion = function (id) {
   if (id === "historial") mostrarHistorial();
   if (id === "favoritos") mostrarFavoritos();
   if (id === "busqueda") mostrarHistorialEnBusqueda();
-  if (id === "contacto")  iniciarMapa();
+  if (id === "contacto") iniciarMapa();
 };
 
 window.volverAtras = () => mostrarSeccion(seccionAnterior);
@@ -64,29 +72,40 @@ window.mostrarToast = function (msg, tipo = "info") {
 // BÚSQUEDA Y FILTROS
 // =====================
 
-window.buscar = async function () {
+window.buscar = async function (page = 1) {
   const texto = document.getElementById("inputBusqueda").value.trim();
   if (!texto) return;
 
-  document.getElementById("labelResultados").textContent = `Resultados para "${texto}"`;
+  ultimaBusqueda = texto;
+  paginaActual = page;
 
-  const spinner = document.getElementById("resultados");
-  spinner.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Buscando...</p></div>`;
+  document.getElementById("labelResultados").textContent =
+    `Resultados para "${texto}"`;
 
-  let pelis = await buscarPeliculas(texto);
+  const cont = document.getElementById("resultados");
+  cont.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Buscando...</p></div>`;
+
+  const data = await buscarPeliculas(texto, page);
+
+  totalPaginas = data.totalPaginas;
+
+  let pelis = data.resultados;
 
   if (filtroActivo === "peliculas") {
-    pelis = pelis.filter(p => p.release_date);
+    pelis = pelis.filter((p) => p.media_type === "movie");
   } else if (filtroActivo === "series") {
-    pelis = pelis.filter(p => !p.release_date);
+    pelis = pelis.filter((p) => p.media_type === "tv");
   }
 
   renderResultados(pelis, texto);
+  renderPaginacion();
 };
 
 window.setFiltro = function (filtro, el) {
   filtroActivo = filtro;
-  document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+  document
+    .querySelectorAll(".chip")
+    .forEach((c) => c.classList.remove("active"));
   el.classList.add("active");
 
   const texto = document.getElementById("inputBusqueda").value.trim();
@@ -101,12 +120,12 @@ function renderResultados(pelis, query) {
     cont.innerHTML = emptyStateHTML(
       "🔍",
       `Sin resultados para "${query}"`,
-      "Probá con otro título o término de búsqueda."
+      "Probá con otro título o término de búsqueda.",
     );
     return;
   }
 
-  cont.innerHTML = pelis.map(p => crearCardHTML(p)).join("");
+  cont.innerHTML = pelis.map((p) => crearCardHTML(p)).join("");
 }
 
 // =====================
@@ -136,14 +155,14 @@ function renderCarrusel(id, pelis, esFav = false, loading = false) {
     return;
   }
 
-  cont.innerHTML = pelis.map(p => crearCardHTML(p, esFav)).join("");
+  cont.innerHTML = pelis.map((p) => crearCardHTML(p, esFav)).join("");
 }
 
 // =====================
 // DETALLE
 // =====================
 
-window.verDetalle = async function (id) {
+window.verDetalle = async function (id, tipo = "movie") {
   const activa = document.querySelector("section.active");
   if (activa && activa.id !== "detalle") seccionAnterior = activa.id;
 
@@ -152,9 +171,13 @@ window.verDetalle = async function (id) {
   const cont = document.getElementById("detalleContenido");
   cont.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Cargando...</p></div>`;
 
-  const peli = await obtenerDetalle(id);
+  const peli = await obtenerDetalle(id, tipo);
   if (!peli) {
-    cont.innerHTML = emptyStateHTML("⚠️", "No se pudo cargar", "Intentá de nuevo más tarde.");
+    cont.innerHTML = emptyStateHTML(
+      "⚠️",
+      "No se pudo cargar",
+      "Intentá de nuevo más tarde.",
+    );
     return;
   }
 
@@ -172,7 +195,7 @@ function renderDetalle(p) {
   const rating = p.vote_average ? p.vote_average.toFixed(1) : "—";
   const year = (p.release_date || "").slice(0, 4);
 
-  const esFav = obtenerFavoritos().some(f => f.id === p.id);
+  const esFav = obtenerFavoritos().some((f) => f.id === p.id);
 
   const heroHTML = poster
     ? `<img src="${poster}" class="detalle-img" alt="${p.title}" loading="lazy">`
@@ -192,7 +215,14 @@ function renderDetalle(p) {
         <div class="detalle-meta">
           ${year ? `<span class="tag">${year}</span>` : ""}
           ${p.runtime ? `<span class="tag">${p.runtime} min</span>` : ""}
-          ${p.genre ? p.genre.split(", ").map(g => `<span class="tag">${g}</span>`).join("") : ""}
+          ${
+            p.genre
+              ? p.genre
+                  .split(", ")
+                  .map((g) => `<span class="tag">${g}</span>`)
+                  .join("")
+              : ""
+          }
         </div>
 
         <p class="detalle-plot">${p.overview || "Sin sinopsis disponible."}</p>
@@ -233,28 +263,38 @@ function mostrarHistorial() {
   const cont = document.getElementById("listaHistorial");
 
   if (!h.length) {
-    cont.innerHTML = emptyStateHTML("🕐", "Sin historial", "Las películas que veas aparecerán acá.");
+    cont.innerHTML = emptyStateHTML(
+      "🕐",
+      "Sin historial",
+      "Las películas que veas aparecerán acá.",
+    );
     return;
   }
 
-  cont.innerHTML = h.map(p => crearCardHTML(p)).join("");
+  cont.innerHTML = h.map((p) => crearCardHTML(p)).join("");
 }
 
 function mostrarHistorialEnBusqueda() {
-  const inputVacio = document.getElementById("inputBusqueda").value.trim() === "";
+  const inputVacio =
+    document.getElementById("inputBusqueda").value.trim() === "";
   if (!inputVacio) return;
 
   const h = obtenerHistorial();
-  document.getElementById("labelResultados").textContent = "Visto recientemente";
+  document.getElementById("labelResultados").textContent =
+    "Visto recientemente";
 
   const cont = document.getElementById("resultados");
 
   if (!h.length) {
-    cont.innerHTML = emptyStateHTML("🎬", "Nada por acá", "Buscá una película o serie para empezar.");
+    cont.innerHTML = emptyStateHTML(
+      "🎬",
+      "Nada por acá",
+      "Buscá una película o serie para empezar.",
+    );
     return;
   }
 
-  cont.innerHTML = h.map(p => crearCardHTML(p)).join("");
+  cont.innerHTML = h.map((p) => crearCardHTML(p)).join("");
 }
 
 // =====================
@@ -263,7 +303,7 @@ function mostrarHistorialEnBusqueda() {
 
 window.toggleFavorito = function () {
   if (!peliculaActual) return;
-  const esFav = obtenerFavoritos().some(f => f.id === peliculaActual.id);
+  const esFav = obtenerFavoritos().some((f) => f.id === peliculaActual.id);
 
   if (esFav) {
     eliminarFavoritoDeStorage(peliculaActual.id);
@@ -297,7 +337,7 @@ window.guardarFavorito = function () {
     return;
   }
 
-  const existe = obtenerFavoritos().find(f => f.id === peliculaActual.id);
+  const existe = obtenerFavoritos().find((f) => f.id === peliculaActual.id);
   if (existe) {
     mostrarToast("Ya está en favoritos", "info");
     cerrarFormulario();
@@ -325,26 +365,40 @@ function mostrarFavoritos() {
       "Sin favoritos aún",
       "Buscá una película y guardala con el botón ❤.",
       "Ir a buscar",
-      "mostrarSeccion('busqueda')"
+      "mostrarSeccion('busqueda')",
     );
     return;
   }
 
-  cont.innerHTML = f.map(p => crearCardHTML(p, true)).join("");
+  cont.innerHTML = f.map((p) => crearCardHTML(p, true)).join("");
 }
 
 window.eliminarFavorito = function (id) {
   eliminarFavoritoDeStorage(id);
   mostrarToast("Eliminado de favoritos", "error");
-  mostrarFavoritos();
-  if (peliculaActual?.id === id) actualizarBtnFav(false);
+
+  const seccionActiva = document.querySelector("section.active")?.id;
+
+  if (seccionActiva === "favoritos") {
+    mostrarFavoritos();
+  } else if (seccionActiva === "home") {
+    renderHome();
+  } else if (seccionActiva === "detalle") {
+    actualizarBtnFav(false);
+  }
 };
 
 // =====================
 // HELPERS
 // =====================
 
-function emptyStateHTML(icon, titulo, subtitulo, btnLabel = null, btnAction = null) {
+function emptyStateHTML(
+  icon,
+  titulo,
+  subtitulo,
+  btnLabel = null,
+  btnAction = null,
+) {
   return `
     <div class="empty-state">
       <div class="empty-icon">${icon}</div>
@@ -355,6 +409,24 @@ function emptyStateHTML(icon, titulo, subtitulo, btnLabel = null, btnAction = nu
   `;
 }
 
+function renderPaginacion() {
+  const cont = document.getElementById("paginacion");
+  cont.innerHTML = "";
+
+  if (totalPaginas <= 1) return;
+
+  cont.innerHTML = `
+    <button ${paginaActual === 1 ? "disabled" : ""} onclick="buscar(${paginaActual - 1})">
+      ←
+    </button>
+
+    <span>${paginaActual} / ${totalPaginas}</span>
+
+    <button ${paginaActual === totalPaginas ? "disabled" : ""} onclick="buscar(${paginaActual + 1})">
+      →
+    </button>
+  `;
+}
 
 // =====================
 //  MAPA CONTACTOS
@@ -368,12 +440,12 @@ function iniciarMapa() {
   mapa = new maplibregl.Map({
     container: "map",
     style: "https://tiles.openfreemap.org/styles/liberty",
-    center: [-58.267530959465,-34.774617363703435],
-    zoom: 15
+    center: [-58.267530959465, -34.774617363703435],
+    zoom: 15,
   });
   new maplibregl.Marker({ color: "red" })
-  .setLngLat([-58.267530959465,-34.774617363703435])
-  .addTo(mapa);
+    .setLngLat([-58.267530959465, -34.774617363703435])
+    .addTo(mapa);
 }
 
 // =====================
@@ -399,10 +471,11 @@ window.enviarEmail = function () {
   const templateParams = {
     from_name: nombre,
     from_email: email,
-    message: mensaje
+    message: mensaje,
   };
 
-  emailjs.send("service_lk3as03", "template_whuywlb", templateParams)
+  emailjs
+    .send("service_lk3as03", "template_whuywlb", templateParams)
     .then(() => {
       mostrarToast("Mensaje enviado ✓", "success");
 

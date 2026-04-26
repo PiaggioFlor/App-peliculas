@@ -3,8 +3,10 @@ const BASE_URL = "https://api.themoviedb.org/3";
 
 // Helper para mapear TMDb → tu formato actual
 function mapearPelicula(item) {
+  console.log("Mapeando item:", item);
   return {
     id: item.id,              // ← id (no imdbID)
+    media_type: item.media_type || (item.title ? "movie" : "tv"),
     title: item.title || item.name,
     release_date: item.release_date || item.first_air_date || "",
     poster_path: item.poster_path || null,
@@ -14,28 +16,34 @@ function mapearPelicula(item) {
 }
 
 // 🔍 Buscar (equivalente a buscarPeliculas)
-export async function buscarPeliculas(texto) {
+export async function buscarPeliculas(texto, page = 1) {
   try {
     const res = await fetch(
-      `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${texto}&language=es-ES`
+      `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${texto}&language=es-ES&page=${page}`
     );
     const data = await res.json();
 
-    return data.results
-      .filter(item => item.media_type === "movie" || item.media_type === "tv")
-      .map(mapearPelicula);
+    return {
+      resultados: data.results
+        .filter(item => item.media_type === "movie" || item.media_type === "tv")
+        .map(mapearPelicula),
+      totalPaginas: data.total_pages
+    };
 
   } catch (error) {
     console.error("Error en búsqueda:", error);
-    return [];
+    return { resultados: [], totalPaginas: 1 };
   }
 }
 
 // 🎬 Obtener detalle
-export async function obtenerDetalle(id) {
+export async function obtenerDetalle(id, tipo = "movie") {
+  console.log(`Obteniendo detalle para ID ${id} (tipo: ${tipo})`);
+  const endpoint = tipo === "tv" ? "tv" : "movie"; // Asegura que el endpoint sea correcto
+
   try {
     const res = await fetch(
-      `${BASE_URL}/movie/${id}?api_key=${API_KEY}&language=es-ES`
+      `${BASE_URL}/${endpoint}/${id}?api_key=${API_KEY}&language=es-ES`
     );
     let data = await res.json();
 
@@ -57,6 +65,7 @@ export async function obtenerDetalle(id) {
 
     return {
       id: data.id,
+      media_type: data.media_type || (data.title ? "movie" : "tv"),
       title: data.title || data.name,
       release_date: data.release_date || data.first_air_date || "",
       poster_path: data.poster_path || null,
@@ -85,6 +94,7 @@ export async function obtenerPopulares() {
     const data = await res.json();
     return data.results.map(item => ({
       id: item.id,
+
       title: item.title || item.name,
       release_date: item.release_date || item.first_air_date || "",
       poster_path: item.poster_path || null,

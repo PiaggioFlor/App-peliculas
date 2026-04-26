@@ -9,8 +9,8 @@
   <!--Comento esta parte por si hay algun error  -->
   <!-- <link rel="stylesheet" href="css/desktop.css">-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <!-- MAPLIBRE --> 
-  <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script> 
+  <!-- MAPLIBRE -->
+  <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet" />
 </head>
 
@@ -108,6 +108,7 @@
 
       <div class="resultados-label" id="labelResultados">Visto recientemente</div>
       <div id="resultados" class="card-grid"></div>
+      <div id="paginacion" class="paginacion"></div>
     </section>
 
     <!-- ========================
@@ -209,7 +210,7 @@
           </div>
 
           <p class="contact-note">
-            Este proyecto fue desarrollado como trabajo académico.  
+            Este proyecto fue desarrollado como trabajo académico.
             Si querés contactarnos, podés usar el formulario.
           </p>
 
@@ -221,34 +222,34 @@
             <h3>Enviar mensaje</h3>
 
             <div class="form-group">
-             <label>Nombre completo</label>
+              <label>Nombre completo</label>
               <input type="text" id="nombre">
 
-            <div class="form-group">
-              <label>Correo electrónico</label>
-              <input type="email" id="email">
-            </div>
+              <div class="form-group">
+                <label>Correo electrónico</label>
+                <input type="email" id="email">
+              </div>
 
-            <div class="form-group">
-              <label>Mensaje</label>
-              <textarea id="mensaje"></textarea>
-            </div>
+              <div class="form-group">
+                <label>Mensaje</label>
+                <textarea id="mensaje"></textarea>
+              </div>
 
-            <button class="btn-send" onclick="enviarEmail()">
-              Enviar mensaje
-            </button>
+              <button class="btn-send" onclick="enviarEmail()">
+                Enviar mensaje
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- MAPA -->
+        <div class="mapSection">
+          <div class="mapContainer">
+            <h1>Ubicación</h1>
+            <div id="map"></div>
           </div>
         </div>
-
-      </div>
-
-      <!-- MAPA -->
-      <div class="mapSection">
-        <div class="mapContainer">
-          <h1>Ubicación</h1>
-          <div id="map"></div>
-        </div>
-      </div>
     </section>
 
   </div>
@@ -263,7 +264,19 @@
       <div class="form-row">
         <div class="form-group">
           <label>Prioridad (1–10)</label>
-          <input type="number" id="prioridad" min="1" max="10" placeholder="1">
+          <select id="prioridad">
+            <option value="">Elegir...</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Categoría</label>
@@ -324,11 +337,11 @@
   </footer>
 
   <div id="toast" class="toast"></div>
-    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
   <script>
-    (function(){
-      emailjs.init("_w70MoWkgqBPqdry6"); 
+    (function () {
+      emailjs.init("_w70MoWkgqBPqdry6");
     })();
   </script>
   <script type="module" src="js/main.js"></script>
