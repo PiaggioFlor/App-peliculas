@@ -1,3 +1,5 @@
+// js/storage.js
+
 export function obtenerHistorial() {
   return JSON.parse(localStorage.getItem("historial") || "[]");
 }

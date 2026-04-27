@@ -6,11 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CineApp</title>
   <link rel="stylesheet" href="css/styles.css">
-  <!--Comento esta parte por si hay algun error  -->
-  <!-- <link rel="stylesheet" href="css/desktop.css">-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <!-- MAPLIBRE --> 
-  <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script> 
+  <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet" />
 </head>
 
@@ -20,12 +17,16 @@
 
     <!-- SIDEBAR (desktop) -->
     <aside class="sidebar">
-      <div class="logo">
+      <div class="sidebar-logo">
         <img src="Assets/Logo.jpg" alt="Logo">
-        <span>Cine<span>App</span></span>
+        <div>
+          <div class="sidebar-logo-name">Cine<span>App</span></div>
+          <div class="sidebar-logo-tagline">Tu app de películas</div>
+        </div>
       </div>
 
       <nav class="sidebar-nav">
+        <div class="sidebar-section-title">Menú</div>
         <div class="sidebar-nav-item active" id="snav-home" onclick="mostrarSeccion('home')">
           <i class="fa-solid fa-house nav-icon"></i> Inicio
         </div>
@@ -43,37 +44,43 @@
         </div>
       </nav>
 
-      <div class="sidebar-footer">CineApp v2.0</div>
+      <div class="sidebar-footer">
+        <strong>CineApp v2.0</strong>
+      </div>
     </aside>
 
     <!-- ========================
          HOME
     ========================= -->
     <section id="home" class="active">
-      <div class="topbar">
-        <div class="logo">
-          <img src="Assets/Logo.jpg" alt="Logo">
-          <span>Cine<span>App</span></span>
-        </div>
-        <button onclick="mostrarSeccion('busqueda')" class="icon-btn">
-          <i class="fa-solid fa-magnifying-glass"></i>
-        </button>
+      <div class="section-label">
+        <h2><i class="fa-solid fa-film"></i> Películas mejor valoradas</h2>
       </div>
+      <div class="h-scroll" id="scroll2024"></div>
 
       <div class="section-label">
-        <h2>Tendencias</h2>
-        <a onclick="mostrarSeccion('busqueda')">Ver todos</a>
+        <h2><i class="fa-solid fa-tv"></i> Series mejor puntuadas</h2>
       </div>
-      <div class="h-scroll" id="scrollRecomendados"></div>
+      <div class="h-scroll" id="scrollSeriesTop"></div>
 
       <div class="section-label">
-        <h2>Favoritos</h2>
+        <h2><i class="fa-solid fa-fire"></i> Lo más popular hoy</h2>
+      </div>
+      <div class="h-scroll" id="scrollPopularHoy"></div>
+
+      <div class="section-label">
+        <h2><i class="fa-solid fa-star"></i> Top Rated</h2>
+      </div>
+      <div class="h-scroll" id="scrollTopRated"></div>
+
+      <div class="section-label">
+        <h2><i class="fa-solid fa-heart"></i> Favoritos</h2>
         <a onclick="mostrarSeccion('favoritos')">Ver todos</a>
       </div>
       <div class="h-scroll" id="scrollFavoritos"></div>
 
       <div class="section-label">
-        <h2>Historial</h2>
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial</h2>
         <a onclick="mostrarSeccion('historial')">Ver todos</a>
       </div>
       <div class="h-scroll" id="scrollHistorial"></div>
@@ -104,10 +111,39 @@
           <button class="chip" onclick="setFiltro('peliculas', this)">Películas</button>
           <button class="chip" onclick="setFiltro('series', this)">Series</button>
         </div>
+
+        <div class="filtros-avanzados">
+          <div class="filtro-group">
+            <label><i class="fa-solid fa-calendar"></i> Año</label>
+            <div class="filtro-input-wrap">
+              <input type="number" id="filtroAnioInput" placeholder="Ej: 2023"
+                min="1900" max="2025" oninput="aplicarFiltroAnio(this.value)">
+            </div>
+          </div>
+          <div class="filtro-group">
+            <label><i class="fa-solid fa-star"></i> Puntuación mínima</label>
+            <div class="rating-chips">
+              <button class="chip-rating" onclick="setRating('', this)">Todas</button>
+              <button class="chip-rating" onclick="setRating('9', this)">9+</button>
+              <button class="chip-rating" onclick="setRating('8', this)">8+</button>
+              <button class="chip-rating" onclick="setRating('7', this)">7+</button>
+              <button class="chip-rating" onclick="setRating('6', this)">6+</button>
+            </div>
+          </div>
+          <div class="filtro-group">
+            <label><i class="fa-solid fa-arrow-up-wide-short"></i> Ordenar por</label>
+            <div class="rating-chips">
+              <button class="chip-rating active" onclick="setOrden('', this)">Popularidad</button>
+              <button class="chip-rating" onclick="setOrden('rating', this)">Rating</button>
+              <button class="chip-rating" onclick="setOrden('fecha', this)">Más nuevas</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="resultados-label" id="labelResultados">Visto recientemente</div>
       <div id="resultados" class="card-grid"></div>
+      <div id="paginacion" class="paginacion"></div>
     </section>
 
     <!-- ========================
@@ -150,15 +186,11 @@
       </div>
 
       <div class="contacto-grid">
-
-        <!-- IZQUIERDA: EQUIPO -->
         <div class="contacto-col-izq">
-
           <div class="contact-hero">
             <div class="contact-avatar">DEV</div>
             <div class="contact-name">Equipo de desarrollo</div>
             <div class="contact-role">Proyecto académico · Buenos Aires</div>
-
             <div class="tech-stack">
               <span class="tech-pill">JavaScript</span>
               <span class="tech-pill">HTML</span>
@@ -168,129 +200,117 @@
             </div>
           </div>
 
-          <!-- MIEMBRO 1 -->
           <div class="dev-card">
             <div class="dev-info">
               <div class="dev-name">Florencia Belen Piaggio</div>
-              <div class="dev-role">Full Stack Developerr</div>
+              <div class="dev-role">Full Stack Developer</div>
             </div>
-
             <div class="dev-links">
               <a href="https://github.com/PiaggioFlor" target="_blank" class="contact-link-btn">
-                <i class="fa-brands fa-github"></i>
-                <span>GitHub</span>
+                <i class="fa-brands fa-github"></i><span>GitHub</span>
               </a>
-
               <a href="https://linkedin.com/in/florencia-piaggio" target="_blank" class="contact-link-btn">
-                <i class="fa-brands fa-linkedin"></i>
-                <span>LinkedIn</span>
+                <i class="fa-brands fa-linkedin"></i><span>LinkedIn</span>
               </a>
             </div>
           </div>
 
-          <!-- MIEMBRO 2 -->
           <div class="dev-card">
             <div class="dev-info">
               <div class="dev-name">Diego Rolon</div>
               <div class="dev-role">Full Stack Developer</div>
             </div>
-
             <div class="dev-links">
               <a href="https://github.com/" target="_blank" class="contact-link-btn">
-                <i class="fa-brands fa-github"></i>
-                <span>GitHub</span>
+                <i class="fa-brands fa-github"></i><span>GitHub</span>
               </a>
-
               <a href="https://linkedin.com/" target="_blank" class="contact-link-btn">
-                <i class="fa-brands fa-linkedin"></i>
-                <span>LinkedIn</span>
+                <i class="fa-brands fa-linkedin"></i><span>LinkedIn</span>
               </a>
             </div>
           </div>
 
           <p class="contact-note">
-            Este proyecto fue desarrollado como trabajo académico.  
+            Este proyecto fue desarrollado como trabajo académico.
             Si querés contactarnos, podés usar el formulario.
           </p>
-
         </div>
 
-        <!-- DERECHA: FORMULARIO -->
         <div class="contacto-col-der">
           <div class="contact-form">
             <h3>Enviar mensaje</h3>
-
             <div class="form-group">
-             <label>Nombre completo</label>
+              <label>Nombre completo</label>
               <input type="text" id="nombre">
-
+            </div>
             <div class="form-group">
               <label>Correo electrónico</label>
               <input type="email" id="email">
             </div>
-
             <div class="form-group">
               <label>Mensaje</label>
               <textarea id="mensaje"></textarea>
             </div>
-
-            <button class="btn-send" onclick="enviarEmail()">
-              Enviar mensaje
-            </button>
+            <button class="btn-send" onclick="enviarEmail()">Enviar mensaje</button>
           </div>
         </div>
-
       </div>
 
-      <!-- MAPA -->
       <div class="mapSection">
+        <h1>Ubicación</h1>
         <div class="mapContainer">
-          <h1>Ubicación</h1>
           <div id="map"></div>
         </div>
       </div>
     </section>
 
-  </div>
-
-  <!-- ========================
-       MODAL FAVORITOS
-  ========================= -->
-  <div id="formFavorito" class="modal-overlay">
-    <div class="modal">
-      <h3>Agregar a Favoritos</h3>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Prioridad (1–10)</label>
-          <input type="number" id="prioridad" min="1" max="10" placeholder="1">
+    <!-- ========================
+         MODAL FAVORITOS
+    ========================= -->
+    <div id="formFavorito" class="modal-overlay">
+      <div class="modal">
+        <h3>Agregar a Favoritos</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prioridad (1–10)</label>
+            <select id="prioridad">
+              <option value="">Elegir...</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Categoría</label>
+            <select id="categoria">
+              <option value="">Elegir...</option>
+              <option value="ver despues">Ver después</option>
+              <option value="favorita">Favorita</option>
+              <option value="recomendada">Recomendada</option>
+            </select>
+          </div>
         </div>
         <div class="form-group">
-          <label>Categoría</label>
-          <select id="categoria">
-            <option value="">Elegir...</option>
-            <option value="ver despues">Ver después</option>
-            <option value="favorita">Favorita</option>
-            <option value="recomendada">Recomendada</option>
-          </select>
+          <label>Nota personal</label>
+          <textarea id="nota" placeholder="¿Por qué la querés ver?"></textarea>
         </div>
-      </div>
-
-      <div class="form-group">
-        <label>Nota personal</label>
-        <textarea id="nota" placeholder="¿Por qué la querés ver?"></textarea>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="cerrarFormulario()">Cancelar</button>
-        <button class="btn-save" onclick="guardarFavorito()">Guardar</button>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="cerrarFormulario()">Cancelar</button>
+          <button class="btn-save" onclick="guardarFavorito()">Guardar</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- ========================
-       NAV MOBILE
-  ========================= -->
+  </div><!-- /app-wrapper -->
+
+  <!-- NAV MOBILE -->
   <nav class="nav">
     <button id="nav-home" class="nav-btn active" onclick="mostrarSeccion('home')">
       <div class="nav-dot"></div>
@@ -324,14 +344,12 @@
   </footer>
 
   <div id="toast" class="toast"></div>
-    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    (function(){
-      emailjs.init("_w70MoWkgqBPqdry6"); 
-    })();
+    (function () { emailjs.init("_w70MoWkgqBPqdry6"); })();
   </script>
   <script type="module" src="js/main.js"></script>
-</body>
 
+</body>
 </html>
