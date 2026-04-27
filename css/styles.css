@@ -1,6 +1,5 @@
 /* =====================
-   styles.css — CineApp Redesign v2
-   Paleta: navy + rojo + naranja
+   styles.css 
    ===================== */
 
 @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap");
@@ -837,11 +836,9 @@ section.active { display: flex; }
     display: flex; min-height: 100vh; align-items: flex-start;
   }
 
-  /* ================================================================
-     SIDEBAR — rediseñado para no verse vacío
-     Estrategia: logo horizontal compacto + secciones con título
-     + mini-widget de recientes al pie antes del footer
-     ================================================================ */
+  /* =======================
+     SIDEBAR 
+     ==================== */
 
   .sidebar {
     display: flex; flex-direction: column;
@@ -852,7 +849,7 @@ section.active { display: flex; }
     overflow: hidden;
   }
 
-  /* Logo horizontal compacto — ocupa menos espacio vertical */
+  /* Logo horizontal compacto */
   .sidebar-logo {
     display: flex; flex-direction: row;
     align-items: center; gap: 12px;
@@ -913,7 +910,7 @@ section.active { display: flex; }
     min-width: 18px; text-align: center;
   }
 
-  /* Mini-widget "vistos recientemente" — rellena el espacio vacío del sidebar */
+  /* Mini-widget "vistos recientemente" */
   .sidebar-recents {
     margin: 12px 10px 0;
     background: rgba(255,255,255,0.025);
@@ -1045,14 +1042,12 @@ section.active { display: flex; }
   .h-scroll .card .card-img-wrap{ height: 215px; }
 
   /* ================================================================
-     BUSCAR — barra de búsqueda a ancho completo
-     El problema era max-width:580px en una pantalla de 1200px+
-     Ahora ocupa todo el ancho disponible con un layout mejor
+     BUSCAR 
      ================================================================ */
 
   #busqueda .search-bar {
     padding: 0;
-    max-width: 100%;       /* ancho completo — ya no queda pequeño */
+    max-width: 100%;       /* ancho completo */
     margin-bottom: 28px;
   }
 
@@ -1070,7 +1065,6 @@ section.active { display: flex; }
     height: 50px;
   }
 
-  /* Botón extra de filtros (agregar en HTML si no existe) */
   .search-filter-btn {
     background: var(--card);
     border: 0.5px solid var(--border-md);
@@ -1087,7 +1081,7 @@ section.active { display: flex; }
     height: 50px; padding: 0 28px; font-size: 15px;
   }
 
-  /* Chips en buscar: más grandes y legibles */
+  /* Chips en buscar*/
   #busqueda .filter-chips { gap: 8px; }
   #busqueda .chip { font-size: 13px; padding: 7px 16px; }
 
@@ -1130,7 +1124,7 @@ section.active { display: flex; }
   #favoritos .card-grid .card-poster-fallback { height: 260px; }
 
  /* =====================
-   DETALLE BASE (mobile first)
+   DETALLE BASE (mobile )
    ===================== */
 
     .detalle-grid {
@@ -1202,7 +1196,7 @@ section.active { display: flex; }
     @media (min-width: 768px) {
 
       #detalleContenido {
-        display: block; /* 🔥 importante: anulamos el flex viejo */
+        display: block; 
       }
 
       .detalle-left {
@@ -1226,19 +1220,16 @@ section.active { display: flex; }
     }
 
 
-  /* ================================================================
-     CONTACTO desktop — layout equilibrado
-     Problema: col-izq (equipo) quedaba chica, col-der (form) sobraba.
-     Solución: grilla 1fr/1fr + col-izq con 3 zonas bien distribuidas
-     + mapa dentro de col-izq + form se adapta al contenido real
-     ================================================================ */
+  /* ===============
+     CONTACTO 
+     =============== */
 
   #contacto        { display: none; flex-direction: column; }
   #contacto.active { display: flex; }
 
   .contacto-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;   /* mitades iguales — equilibrado */
+    grid-template-columns: 1fr 1fr;   /* mitades iguales  */
     gap: 24px; margin-top: 8px;
     align-items: start;
   }
@@ -1254,7 +1245,7 @@ section.active { display: flex; }
   .contacto-col-izq .contact-hero { padding: 20px; }
   .contacto-col-izq .contact-avatar { width: 60px; height: 60px; font-size: 22px; margin-bottom: 10px; }
 
-  /* Dev cards (equipo): se muestran como lista en desktop, no como bloque aislado */
+  /* Dev cards (equipo): se muestran como lista en desktop */
   .dev-card {
     background: var(--card);
     border: 0.5px solid var(--border-md);
@@ -1272,7 +1263,7 @@ section.active { display: flex; }
   .contacto-col-izq .mapContainer  { width: 100%; }
   .contacto-col-izq #map           { height: 260px; margin: 8px; }
 
-  /* Columna derecha: form que no se estira artificialmente */
+  /* Columna derecha: form que no se estira  */
   .contacto-col-der { display: flex; flex-direction: column; }
 
   .contacto-col-der .contact-form {
@@ -1281,10 +1272,9 @@ section.active { display: flex; }
     border: 0.5px solid var(--border-md);
     border-radius: var(--radius-lg);
     padding: 28px;
-    /* Sin height:100% — crece con su contenido, no forzado */
   }
 
-  /* Links de contacto en desktop: grid 2x2 en vez de lista vertical */
+  /* Links de contacto en desktop: grid 2x2 */
   .contacto-col-der .contact-links {
     margin: 0 0 16px;
     display: grid;
@@ -1293,7 +1283,7 @@ section.active { display: flex; }
   }
 
   /* =====================
-     MAPA — sección global (si está fuera de contacto) 
+     MAPA — sección global 
      ===================== */
 
   .mapSection    { margin-top: 28px; }
@@ -1322,7 +1312,7 @@ section.active { display: flex; }
   .icon-btn { width: 40px; height: 40px; border-radius: var(--radius-md); }
   .toast    { bottom: 32px; }
 
-} /* fin @media 768px */
+} 
 
 
 /* ================================================================
@@ -1352,10 +1342,6 @@ section.active { display: flex; }
   .detalle-title { font-size: 48px; }
   .btn-fav { max-width: 300px; }
 }
-
-/* =====================
-   FIX DESKTOP
-   ===================== */
 
 @media (min-width: 768px) {
 
@@ -1587,7 +1573,6 @@ section.active { display: flex; }
 
 /* =====================
    buscar.css — Sección Buscar
-   Filtros equilibrados, input año como chip pill
    ===================== */
 
 /* =====================
@@ -1678,9 +1663,7 @@ section.active { display: flex; }
 }
 
 /* =====================
-   FILTROS AVANZADOS — MOBILE FIRST
-   En mobile: apilados verticalmente, separador horizontal
-   En desktop: 3 columnas iguales con separador vertical
+   FILTROS AVANZADOS 
    ===================== */
 
 #busqueda .filtros-avanzados {
@@ -1728,8 +1711,6 @@ section.active { display: flex; }
 
 /* =====================
    INPUT AÑO — pill idéntico a los chips
-   Mismo padding, border-radius, fuente y altura que .chip-rating
-   Sin fondo blanco ni aspecto de input nativo
    ===================== */
 
 #busqueda .filtro-input-wrap {
@@ -1778,7 +1759,6 @@ section.active { display: flex; }
 
 /* =====================
    CHIPS DE RATING Y ORDEN
-   Misma altura y forma que el input año
    ===================== */
 
 #busqueda .rating-chips,
@@ -1932,7 +1912,7 @@ section.active { display: flex; }
   #busqueda .search-bar {
     gap: 16px;
     margin-bottom: 32px;
-    max-width: 100%;   /* ancho completo, no truncado */
+    max-width: 100%;   
     padding: 0;
   }
 
@@ -1954,7 +1934,7 @@ section.active { display: flex; }
     font-size: 17px;
   }
 
-  /* Filtros avanzados: 3 columnas en desktop con separadores verticales */
+  /* 3 columnas en desktop con separadores verticales */
   #busqueda .filtros-avanzados {
     flex-direction: row;
     align-items: flex-start;

@@ -1,8 +1,7 @@
 // js/main.js
 
 import {
-  buscarPeliculas,
-  obtenerDetalle,
+  obtenerDetalle,         
   getPeliculas2024Top,
   getSeriesTop,
   getPopularesHoy,
@@ -26,8 +25,7 @@ import {
 
 let peliculaActual  = null;
 let seccionAnterior = "home";
-let filtroActivo    = "todos";
-let filtroTipo      = "todos";
+let filtroTipo      = "todos";   
 let filtroRating    = "";
 let filtroAnio      = "";
 let filtroOrden     = "";
@@ -36,17 +34,17 @@ let totalPaginas    = 1;
 let ultimaBusqueda  = "";
 
 // =====================
-// NAVEGACIÓN
+// NAVEGACIÓN — definida UNA sola vez
 // =====================
 
-window.mostrarSeccion = function (id) {
-  document.querySelectorAll("section").forEach((s) => s.classList.remove("active"));
+function mostrarSeccion(id) {
+  document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 
-  document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById("nav-" + id)?.classList.add("active");
 
-  document.querySelectorAll(".sidebar-nav-item").forEach((i) => i.classList.remove("active"));
+  document.querySelectorAll(".sidebar-nav-item").forEach(i => i.classList.remove("active"));
   document.getElementById("snav-" + id)?.classList.add("active");
 
   if (id !== "detalle") seccionAnterior = id;
@@ -56,26 +54,40 @@ window.mostrarSeccion = function (id) {
   if (id === "favoritos") mostrarFavoritos();
   if (id === "busqueda")  mostrarHistorialEnBusqueda();
   if (id === "contacto")  iniciarMapa();
-};
+}
 
-window.volverAtras = () => mostrarSeccion(seccionAnterior);
+// Exponer al scope global todo lo que el HTML usa en onclick
+window.mostrarSeccion    = mostrarSeccion;
+window.volverAtras       = () => mostrarSeccion(seccionAnterior);
+window.verDetalle        = verDetalle;
+window.eliminarFavorito  = eliminarFavorito;
+window.toggleFavorito    = toggleFavorito;
+window.buscar            = buscar;
+window.mostrarToast      = mostrarToast;
+window.cerrarFormulario  = cerrarFormulario;
+window.guardarFavorito   = guardarFavorito;
+window.enviarEmail       = enviarEmail;
+window.setFiltro         = setFiltro;
+window.setRating         = setRating;
+window.setOrden          = setOrden;
+window.aplicarFiltroAnio = aplicarFiltroAnio;
 
 // =====================
 // TOAST
 // =====================
 
-window.mostrarToast = function (msg, tipo = "info") {
+function mostrarToast(msg, tipo = "info") {
   const t = document.getElementById("toast");
   t.textContent = msg;
   t.className = "toast show toast--" + tipo;
   setTimeout(() => t.classList.remove("show"), 2500);
-};
+}
 
 // =====================
 // BÚSQUEDA
 // =====================
 
-window.buscar = async function (page = 1) {
+async function buscar(page = 1) {
   const texto = document.getElementById("inputBusqueda").value.trim();
   if (!texto) return;
 
@@ -101,42 +113,41 @@ window.buscar = async function (page = 1) {
   totalPaginas = data.totalPaginas;
   renderResultados(data.resultados, texto);
   renderPaginacion();
-};
+}
 
-window.setFiltro = function (filtro, el) {
-  filtroActivo = filtro;
-  filtroTipo   = filtro;
-  document.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+function setFiltro(filtro, el) {
+  filtroTipo = filtro;
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
   el.classList.add("active");
   const texto = document.getElementById("inputBusqueda").value.trim();
   if (texto) buscar();
-};
+}
 
-window.setRating = function (val, el) {
+function setRating(val, el) {
   filtroRating = val;
-  document.querySelectorAll(".chip-rating").forEach((c) => {
+  document.querySelectorAll(".chip-rating").forEach(c => {
     if (c.closest(".rating-chips") === el.closest(".rating-chips"))
       c.classList.remove("active");
   });
   el.classList.add("active");
   if (ultimaBusqueda) buscar(1);
-};
+}
 
-window.setOrden = function (val, el) {
+function setOrden(val, el) {
   filtroOrden = val;
-  document.querySelectorAll(".chip-rating").forEach((c) => {
+  document.querySelectorAll(".chip-rating").forEach(c => {
     if (c.closest(".rating-chips") === el.closest(".rating-chips"))
       c.classList.remove("active");
   });
   el.classList.add("active");
   if (ultimaBusqueda) buscar(1);
-};
+}
 
-window.aplicarFiltroAnio = function (val) {
+function aplicarFiltroAnio(val) {
   filtroAnio = String(val).trim();
   if (filtroAnio.length === 4 && ultimaBusqueda) buscar(1);
   if (filtroAnio === "") buscar(1);
-};
+}
 
 function renderResultados(pelis, query) {
   const cont = document.getElementById("resultados");
@@ -151,7 +162,7 @@ function renderResultados(pelis, query) {
     return;
   }
 
-  cont.innerHTML = pelis.map((p) => crearCardHTML(p)).join("");
+  cont.innerHTML = pelis.map(p => crearCardHTML(p)).join("");
 }
 
 // =====================
@@ -172,7 +183,7 @@ function renderCarrusel(containerId, items, esFav = false, loading = false) {
     return;
   }
 
-  cont.innerHTML = items.map((p) => crearCardHTML(p, esFav)).join("");
+  cont.innerHTML = items.map(p => crearCardHTML(p, esFav)).join("");
 }
 
 // =====================
@@ -205,7 +216,7 @@ async function renderHome() {
 // DETALLE
 // =====================
 
-window.verDetalle = async function (id, tipo = "movie") {
+async function verDetalle(id, tipo = "movie") {
   const activa = document.querySelector("section.active");
   if (activa && activa.id !== "detalle") seccionAnterior = activa.id;
 
@@ -223,13 +234,13 @@ window.verDetalle = async function (id, tipo = "movie") {
   peliculaActual = peli;
   guardarHistorial(peli);
   renderDetalle(peli);
-};
+}
 
 function renderDetalle(p) {
-  const poster  = p.poster_path ? `https://image.tmdb.org/t/p/w780${p.poster_path}` : null;
-  const rating  = p.vote_average ? p.vote_average.toFixed(1) : "—";
-  const year    = (p.release_date || "").slice(0, 4);
-  const esFav   = obtenerFavoritos().some((f) => f.id === p.id);
+  const poster = p.poster_path ? `https://image.tmdb.org/t/p/w780${p.poster_path}` : null;
+  const rating = p.vote_average ? p.vote_average.toFixed(1) : "—";
+  const year   = (p.release_date || "").slice(0, 4);
+  const esFav  = obtenerFavoritos().some(f => f.id === p.id);
 
   const heroHTML = poster
     ? `<img src="${poster}" class="detalle-img" alt="${p.title}" loading="lazy">`
@@ -238,13 +249,10 @@ function renderDetalle(p) {
   document.getElementById("detalleContenido").innerHTML = `
     <div class="detalle-grid">
 
-      <!-- IZQUIERDA -->
       <div class="detalle-left">
         ${heroHTML}
-
         <div class="detalle-header">
           <h1 class="detalle-title">${p.title}</h1>
-
           <button
             class="btn-fav ${esFav ? "btn-fav--active" : ""}"
             onclick="toggleFavorito()"
@@ -253,32 +261,20 @@ function renderDetalle(p) {
             ${esFav ? "✓ En favoritos" : "❤ Agregar a favoritos"}
           </button>
         </div>
-
         <div class="detalle-meta">
-          ${year ? `<span class="tag">${year}</span>` : ""}
+          ${year      ? `<span class="tag">${year}</span>`          : ""}
           ${p.runtime ? `<span class="tag">${p.runtime} min</span>` : ""}
-          ${
-            p.genre
-              ? p.genre
-                  .split(", ")
-                  .map((g) => `<span class="tag">${g}</span>`)
-                  .join("")
-              : ""
-          }
+          ${p.genre   ? p.genre.split(", ").map(g => `<span class="tag">${g}</span>`).join("") : ""}
         </div>
-
         <div class="detalle-rating">★ ${rating}</div>
       </div>
 
-      <!-- DERECHA -->
       <div class="detalle-right">
         <p class="detalle-plot">${p.overview || "Sin sinopsis disponible."}</p>
-
         <div class="detalle-rows">
           ${detalleRow("Director", p.director)}
-          ${detalleRow("Actores", p.actors)}
+          ${detalleRow("Actores",  p.actors)}
         </div>
-
       </div>
 
     </div>
@@ -307,7 +303,7 @@ function mostrarHistorial() {
     cont.innerHTML = emptyStateHTML("🕐", "Sin historial", "Las películas que veas aparecerán acá.");
     return;
   }
-  cont.innerHTML = h.map((p) => crearCardHTML(p)).join("");
+  cont.innerHTML = h.map(p => crearCardHTML(p)).join("");
 }
 
 function mostrarHistorialEnBusqueda() {
@@ -322,16 +318,16 @@ function mostrarHistorialEnBusqueda() {
     cont.innerHTML = emptyStateHTML("🎬", "Nada por acá", "Buscá una película o serie para empezar.");
     return;
   }
-  cont.innerHTML = h.map((p) => crearCardHTML(p)).join("");
+  cont.innerHTML = h.map(p => crearCardHTML(p)).join("");
 }
 
 // =====================
 // FAVORITOS
 // =====================
 
-window.toggleFavorito = function () {
+function toggleFavorito() {
   if (!peliculaActual) return;
-  const esFav = obtenerFavoritos().some((f) => f.id === peliculaActual.id);
+  const esFav = obtenerFavoritos().some(f => f.id === peliculaActual.id);
 
   if (esFav) {
     eliminarFavoritoDeStorage(peliculaActual.id);
@@ -340,28 +336,26 @@ window.toggleFavorito = function () {
   } else {
     abrirFormulario();
   }
-};
+}
 
 function actualizarBtnFav(esFav) {
   const btn = document.getElementById("btnFav");
   if (!btn) return;
   btn.className = "btn-fav " + (esFav ? "btn-fav--active" : "");
-  btn.innerHTML = esFav
-    ? `<i class="fa-solid fa-check"></i> En favoritos`
-    : `<i class="fa-solid fa-heart"></i> Agregar a favoritos`;
+  btn.innerHTML = esFav ? "✓ En favoritos" : "❤ Agregar a favoritos";
 }
 
-window.abrirFormulario  = () => document.getElementById("formFavorito").classList.add("open");
-window.cerrarFormulario = () => document.getElementById("formFavorito").classList.remove("open");
+function abrirFormulario()  { document.getElementById("formFavorito").classList.add("open"); }
+function cerrarFormulario() { document.getElementById("formFavorito").classList.remove("open"); }
 
-window.guardarFavorito = function () {
+function guardarFavorito() {
   const prioridad = document.getElementById("prioridad").value;
   const categoria = document.getElementById("categoria").value;
   const nota      = document.getElementById("nota").value;
 
   if (!prioridad) { mostrarToast("Ingresá una prioridad", "error"); return; }
 
-  if (obtenerFavoritos().find((f) => f.id === peliculaActual.id)) {
+  if (obtenerFavoritos().find(f => f.id === peliculaActual.id)) {
     mostrarToast("Ya está en favoritos", "info");
     cerrarFormulario();
     return;
@@ -375,7 +369,7 @@ window.guardarFavorito = function () {
   document.getElementById("prioridad").value = "";
   document.getElementById("categoria").value = "";
   document.getElementById("nota").value      = "";
-};
+}
 
 function mostrarFavoritos() {
   const f    = obtenerFavoritos();
@@ -385,14 +379,14 @@ function mostrarFavoritos() {
     cont.innerHTML = emptyStateHTML(
       "❤", "Sin favoritos aún",
       "Buscá una película y guardala con el botón ❤.",
-      "Ir a buscar", "mostrarSeccion('busqueda')"
+      "Ir a buscar", () => mostrarSeccion("busqueda")
     );
     return;
   }
-  cont.innerHTML = f.map((p) => crearCardHTML(p, true)).join("");
+  cont.innerHTML = f.map(p => crearCardHTML(p, true)).join("");
 }
 
-window.eliminarFavorito = function (id) {
+function eliminarFavorito(id) {
   eliminarFavoritoDeStorage(id);
   mostrarToast("Eliminado de favoritos", "error");
 
@@ -400,19 +394,22 @@ window.eliminarFavorito = function (id) {
   if (sec === "favoritos") mostrarFavoritos();
   else if (sec === "home") renderHome();
   else if (sec === "detalle") actualizarBtnFav(false);
-};
+}
 
 // =====================
 // HELPERS
 // =====================
 
 function emptyStateHTML(icon, titulo, subtitulo, btnLabel = null, btnAction = null) {
+  const btnHTML = btnLabel
+    ? `<button class="empty-btn" onclick="(${btnAction})()">${btnLabel}</button>`
+    : "";
   return `
     <div class="empty-state">
       <div class="empty-icon">${icon}</div>
       <h4 class="empty-title">${titulo}</h4>
       <p class="empty-text">${subtitulo}</p>
-      ${btnLabel ? `<button class="empty-btn" onclick="${btnAction}">${btnLabel}</button>` : ""}
+      ${btnHTML}
     </div>
   `;
 }
@@ -452,7 +449,7 @@ function iniciarMapa() {
 // EMAIL
 // =====================
 
-window.enviarEmail = function () {
+function enviarEmail() {
   const nombre  = document.getElementById("nombre").value;
   const email   = document.getElementById("email").value;
   const mensaje = document.getElementById("mensaje").value;
@@ -474,14 +471,72 @@ window.enviarEmail = function () {
       document.getElementById("email").value   = "";
       document.getElementById("mensaje").value = "";
     })
-    .catch((err) => {
+    .catch(err => {
       console.error(err);
       mostrarToast("Error al enviar", "error");
     });
-};
+}
 
 // =====================
-// INIT
+// INIT — vincula todos los eventos del HTML
 // =====================
 
-window.onload = () => mostrarSeccion("home");
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Nav mobile
+  document.querySelectorAll(".nav-btn[id^='nav-']").forEach(btn => {
+    btn.addEventListener("click", () => mostrarSeccion(btn.id.replace("nav-", "")));
+  });
+
+  // Sidebar desktop
+  document.querySelectorAll(".sidebar-nav-item[id^='snav-']").forEach(item => {
+    item.addEventListener("click", () => mostrarSeccion(item.id.replace("snav-", "")));
+  });
+
+  // Links "Ver todos" del home
+  document.querySelectorAll("[data-goto]").forEach(el => {
+    el.addEventListener("click", () => mostrarSeccion(el.dataset.goto));
+  });
+
+  // Botón buscar + Enter
+  document.getElementById("btnBuscar")
+    ?.addEventListener("click", () => buscar());
+  document.getElementById("inputBusqueda")
+    ?.addEventListener("keydown", e => { if (e.key === "Enter") buscar(); });
+
+  // Chips tipo
+  document.querySelectorAll(".chip[data-filtro]").forEach(chip => {
+    chip.addEventListener("click", () => setFiltro(chip.dataset.filtro, chip));
+  });
+
+  // Chips rating
+  document.querySelectorAll(".chip-rating[data-rating]").forEach(chip => {
+    chip.addEventListener("click", () => setRating(chip.dataset.rating, chip));
+  });
+
+  // Chips orden
+  document.querySelectorAll(".chip-rating[data-orden]").forEach(chip => {
+    chip.addEventListener("click", () => setOrden(chip.dataset.orden, chip));
+  });
+
+  // Input año
+  document.getElementById("filtroAnioInput")
+    ?.addEventListener("input", e => aplicarFiltroAnio(e.target.value));
+
+  // Volver atrás
+  document.getElementById("btnVolver")
+    ?.addEventListener("click", () => mostrarSeccion(seccionAnterior));
+
+  // Modal favoritos
+  document.getElementById("btnCancelar")
+    ?.addEventListener("click", cerrarFormulario);
+  document.getElementById("btnGuardar")
+    ?.addEventListener("click", guardarFavorito);
+
+  // Email
+  document.getElementById("btnEnviar")
+    ?.addEventListener("click", enviarEmail);
+
+  // Arrancar
+  mostrarSeccion("home");
+});

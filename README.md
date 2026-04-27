@@ -22,7 +22,7 @@
 
 ## API utilizada
 
-Se utilizó la API de OMDb para obtener información de películas en formato JSON.
+Se utilizó la API de TMDB para obtener información de películas en formato JSON.
 
 ---
 

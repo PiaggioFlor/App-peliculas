@@ -1,11 +1,11 @@
 const API_KEY = "22fba254142510f1e789656348eed887"; 
 const BASE_URL = "https://api.themoviedb.org/3";
 
-// Helper para mapear TMDb → tu formato actual
+// Helper para mapear TMDb 
 function mapearPelicula(item) {
   console.log("Mapeando item:", item);
   return {
-    id: item.id,              // ← id (no imdbID)
+    id: item.id,            
     media_type: item.media_type || (item.title ? "movie" : "tv"),
     title: item.title || item.name,
     release_date: item.release_date || item.first_air_date || "",
@@ -15,7 +15,7 @@ function mapearPelicula(item) {
   };
 }
 
-// 🔍 Buscar (equivalente a buscarPeliculas)
+// Buscar
 export async function buscarPeliculas(texto, page = 1) {
   try {
     const res = await fetch(
